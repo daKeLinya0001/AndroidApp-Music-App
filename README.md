@@ -44,6 +44,10 @@
 若要在 CI 或命令行签名，可在 `app/build.gradle.kts` 中补充 `signingConfigs` 并读取本地
 `keystore.properties`（注意不要把它提交到仓库）。
 
+> 注：AGP 9 的 `optimization { enable = true }` 会让 R8 对 kotlin 标准库做跨包合并，
+> 运行时会抛 `IllegalAccessError`（应用启动即崩溃），因此默认未启用该优化；
+> 如需更小的包体，可自行打开并完整回归测试。
+
 ## 权限说明
 
 | 权限 | 用途 | 拒绝后 |
@@ -89,3 +93,7 @@ app/src/main/java/com/example/musicapp/
 ├── ui/CropView.kt           壁纸取景手势与裁剪
 └── ui/ThemeColors.kt        运行时强调色 / 文字颜色
 ```
+
+## 许可证
+
+[MIT](LICENSE) © daKeLinya0001
