@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- 背景（深色） -->
+    <color name="bg_deep">#FF070B14</color>
+    <color name="bg_mid">#FF0B1424</color>
+
+    <!-- 卡片 -->
+    <color name="card_fill">#FF0E1828</color>
+    <color name="card_base">#FF0E1828</color>
+    <color name="card_stroke">#1FFFFFFF</color>
+
+    <!-- 主色（深色主题下默认强调色为白色） -->
+    <color name="primary">#FFFFFFFF</color>
+    <color name="primary_dark">#FFE5E7EB</color>
+    <color name="primary_light">#FFF2F6FF</color>
+
+    <!-- 文字 -->
+    <color name="text_primary">#FFF2F6FF</color>
+    <color name="text_secondary">#FF93A4C0</color>
+    <color name="text_tertiary">#FF64748B</color>
+
+    <!-- 其它 -->
+    <color name="bar_default">#FF4F8CFF</color>
+    <color name="divider">#14FFFFFF</color>
+    <color name="track_inactive">#26FFFFFF</color>
+    <color name="search_bg">#14FFFFFF</color>
+    <color name="icon_button_bg">#FF1B2436</color>
+    <color name="overlay_dark">#B3070B14</color>
+    <color name="danger">#FFEF4444</color>
+</resources>

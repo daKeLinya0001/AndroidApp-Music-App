@@ -1,0 +1,137 @@
+<resources>
+    <string name="app_name">MusicApp</string>
+
+    <!-- 头部 -->
+    <string name="eyebrow">本地音乐</string>
+    <string name="title">音乐</string>
+    <string name="subtitle_default">导入本地音频，在这里直接播放。</string>
+    <string name="tracks_unit">首</string>
+    <string name="import_music">导入音乐</string>
+    <string name="importing">正在导入…</string>
+
+    <!-- 音乐库 -->
+    <string name="playlist">音乐库</string>
+    <string name="search_hint">搜索曲目</string>
+    <string name="empty_title">还没有音乐</string>
+    <string name="empty_body">从设备中选择音频文件，导入后会出现在音乐库里。</string>
+    <string name="choose_files">选择音频文件</string>
+    <string name="search_no_results">没有找到匹配的曲目。</string>
+    <string name="loading">正在载入音乐库…</string>
+    <string name="unknown_duration">未知时长</string>
+    <string name="remove">删除</string>
+
+    <!-- 正在播放 -->
+    <string name="now_playing">正在播放</string>
+    <string name="no_track">未选择曲目</string>
+    <string name="no_track_body">从音乐库中选择一首，开始播放。</string>
+    <string name="local_audio">本地音频</string>
+    <string name="play">播放</string>
+    <string name="pause">暂停</string>
+    <string name="previous">上一首</string>
+    <string name="next">下一首</string>
+    <string name="notification_channel">播放控制</string>
+    <string name="notification_channel_desc">显示当前播放的曲目，并提供播放控制。</string>
+    <string name="notification_playing">正在播放</string>
+    <string name="notification_paused">已暂停</string>
+    <string name="repeat">循环模式</string>
+    <string name="repeat_off">不循环</string>
+    <string name="repeat_all">列表循环</string>
+    <string name="repeat_one">单曲循环</string>
+    <string name="mode_repeat_all">列表循环</string>
+    <string name="mode_shuffle">列表随机播放</string>
+    <string name="mode_repeat_one">单曲循环</string>
+    <string name="volume">音量</string>
+    <string name="mute">静音</string>
+    <string name="unmute">取消静音</string>
+
+    <!-- 错误 -->
+    <string name="error_unsupported">没有找到可播放的音频文件。</string>
+    <string name="error_import">导入失败，请重试。</string>
+    <string name="error_playback">无法播放这个文件，可能是不受支持的格式。</string>
+
+    <!-- 主题 -->
+    <string name="theme_section">主题</string>
+    <string name="background_label">背景</string>
+    <string name="background_light">白色</string>
+    <string name="background_dark">深色</string>
+    <string name="background_system">跟随系统</string>
+    <string name="disc_label">唱片颜色</string>
+    <string name="disc_black">黑色</string>
+    <string name="disc_color">彩色</string>
+    <string name="theme_hint">白色为默认背景；深色适合夜间使用。</string>
+    <string name="color_section">颜色</string>
+    <string name="accent_color">强调色</string>
+    <string name="text_color">文字颜色</string>
+    <string name="color_default">默认</string>
+    <string name="color_hint">强调色作用于按钮、进度条、开关等；文字颜色作用于标题与正文。</string>
+    <string name="wallpaper">壁纸</string>
+    <string name="wallpaper_hint">可上传图片或视频作为主界面与全屏播放器的背景；默认为纯色背景。</string>
+    <string name="wallpaper_default">当前：默认纯色</string>
+    <string name="wallpaper_image_status">当前：图片壁纸</string>
+    <string name="wallpaper_video_status">当前：视频壁纸</string>
+    <string name="pick_image">选择图片</string>
+    <string name="pick_video">选择视频</string>
+    <string name="restore_default">恢复默认</string>
+    <string name="wallpaper_failed">设置壁纸失败，请重试</string>
+    <string name="crop_hint">拖动或双指缩放，选择要显示在背景的区域</string>
+    <string name="crop_done">完成</string>
+
+    <!-- 特效 -->
+    <string name="particles_section">特效</string>
+    <string name="particles_enabled">粒子特效</string>
+    <string name="particles_enabled_hint">播放器卡片后方漂浮的光点与底部光晕，随低频脉动。</string>
+    <string name="particle_size">粒子大小</string>
+    <string name="glow_size">光晕大小</string>
+    <string name="arc_amplitude">弧线震动幅度</string>
+    <string name="arc_amplitude_hint">0 为平滑圆环，100 为最大起伏</string>
+    <string name="arc_blur">弧线虚化程度</string>
+    <string name="arc_blur_hint">0 清晰，100 最模糊；同时作用于全屏粒子与光晕（Android 12 及以上生效）</string>
+    <string name="particle_color">粒子颜色</string>
+    <string name="particle_follow_bar">跟随频谱柱</string>
+    <string name="particle_custom">自定义</string>
+
+    <string name="back">返回</string>
+    <string name="expand_player">展开播放器</string>
+    <!-- 设置 -->
+    <string name="settings">设置</string>
+    <string name="reset_settings">重置所有设置</string>
+    <string name="reset_settings_hint">恢复所有外观与特效选项的默认值；已导入的音乐不会被删除，只有卸载应用才会清除全部数据。</string>
+    <string name="reset_dialog_title">确认重置</string>
+    <string name="reset_dialog_message">所有设置将恢复为默认值，已导入的音乐不受影响。此操作不可撤销。</string>
+    <string name="reset">重置</string>
+    <string name="cancel">取消</string>
+    <string name="settings_title">播放器设置</string>
+    <string name="settings_hint">修改会自动保存。</string>
+    <string name="spectrum_enabled">律动频谱</string>
+    <string name="spectrum_enabled_hint">在播放器文字下方显示随音频跳动的频谱柱。</string>
+    <string name="library_spectrum_enabled">在音乐库显示频谱柱</string>
+    <string name="library_spectrum_enabled_hint">在音乐库卡片内显示频谱柱，不影响列表操作。</string>
+    <string name="library_bars_placement">音乐库频谱柱位置</string>
+    <string name="library_bars_placement_hint">选择频谱柱位于列表上方还是紧贴卡片底部。</string>
+    <string name="placement_top">列表上方</string>
+    <string name="placement_bottom">紧贴底部</string>
+    <string name="max_bar_height">频谱柱最大高度</string>
+    <string name="bar_color">频谱柱颜色</string>
+    <string name="bar_speed">频谱柱跳动速度</string>
+    <string name="bar_speed_hint">10 最慢，100 最快</string>
+    <string name="bar_opacity">频谱柱透明度</string>
+    <string name="bar_opacity_hint">0 全透明，100 不透明</string>
+    <string name="card_opacity">背景卡片透明度</string>
+    <string name="card_opacity_hint">0 全透明，100 不透明</string>
+    <string name="blur_strength">虚化程度</string>
+    <string name="blur_strength_hint">0 关闭虚化，100 最强；Android 12 及以上生效</string>
+    <string name="presets">预设颜色</string>
+    <string name="custom_color">自定义颜色（#RRGGBB）</string>
+    <string name="close">关闭</string>
+    <string name="auto_saved">自动保存</string>
+    <string name="copyright">@daKeLinya0001版权所有</string>
+    <string name="shortcuts_section">键盘快捷键</string>
+    <string name="shortcuts_hint">连接实体键盘时可用（手机触屏无需快捷键）。</string>
+    <string name="shortcut_play_pause">播放 / 暂停</string>
+    <string name="shortcut_previous">上一首</string>
+    <string name="shortcut_next">下一首</string>
+
+    <!-- 权限 -->
+    <string name="permission_audio_title">需要录音权限才能显示实时频谱</string>
+    <string name="permission_audio_body">Android 的音频可视化接口需要录音权限。拒绝后频谱柱将以模拟律动显示。</string>
+</resources>

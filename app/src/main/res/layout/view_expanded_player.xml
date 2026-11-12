@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 全屏展开的播放器：点击唱片后由卡片动画放大到全屏 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/expanded_overlay"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:visibility="gone">
+
+    <!-- 展开时盖住下层内容的底色 -->
+    <View
+        android:id="@+id/expanded_scrim"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_screen" />
+
+    <FrameLayout
+        android:id="@+id/expanded_sheet"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/bg_card">
+
+        <!-- 粒子与光晕：以唱片为圆心向外散发，位于内容下方，避免光晕把弧线糊掉 -->
+        <com.example.musicapp.ui.ParticleView
+            android:id="@+id/ex_particle"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_gravity="bottom" />
+
+        <LinearLayout
+            android:id="@+id/expanded_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical"
+            android:paddingStart="12dp"
+            android:paddingTop="12dp"
+            android:paddingEnd="12dp"
+            android:paddingBottom="20dp">
+
+            <ImageButton
+                android:id="@+id/btn_collapse"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:background="@android:color/transparent"
+                android:contentDescription="@string/back"
+                android:foreground="?attr/selectableItemBackgroundBorderless"
+                android:padding="11dp"
+                android:src="@drawable/ic_back"
+                app:tint="@color/text_primary" />
+
+            <Space
+                android:layout_width="1dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <FrameLayout
+                android:id="@+id/ex_visualizer"
+                android:layout_width="360dp"
+                android:layout_height="360dp"
+                android:layout_gravity="center_horizontal">
+
+                <!-- 径向频谱：32 根柱子环绕唱片向外辐射 -->
+                <com.example.musicapp.ui.SpectrumView
+                    android:id="@+id/ex_spectrum"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent" />
+
+                <FrameLayout
+                    android:id="@+id/ex_disc_container"
+                    android:layout_width="200dp"
+                    android:layout_height="200dp"
+                    android:layout_gravity="center">
+
+                    <com.example.musicapp.ui.DiscView
+                        android:id="@+id/ex_disc_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                </FrameLayout>
+            </FrameLayout>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                android:layout_marginTop="24dp"
+                android:letterSpacing="0.14"
+                android:text="@string/now_playing"
+                android:textAllCaps="true"
+                android:textColor="@color/text_tertiary"
+                android:textSize="10sp" />
+
+            <TextView
+                android:id="@+id/ex_track_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
+                android:text="@string/no_track"
+                android:textColor="@color/text_primary"
+                android:textSize="22sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/ex_track_sub"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:ellipsize="end"
+                android:gravity="center"
+                android:maxLines="1"
+                android:text="@string/no_track_body"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp" />
+
+            <Space
+                android:layout_width="1dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <SeekBar
+                android:id="@+id/ex_seek"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="1000"
+                android:paddingStart="14dp"
+                android:paddingEnd="14dp"
+                android:progressBackgroundTint="@color/track_inactive"
+                android:progressTint="@color/primary_light"
+                android:splitTrack="false"
+                android:thumbTint="@color/primary_light" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/ex_time_current"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="00:00"
+                    android:textColor="@color/text_tertiary"
+                    android:textSize="11sp" />
+
+                <TextView
+                    android:id="@+id/ex_time_total"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="00:00"
+                    android:textColor="@color/text_tertiary"
+                    android:textSize="11sp" />
+            </LinearLayout>
+
+            <FrameLayout
+                android:layout_width="match_parent"
+                android:layout_height="62dp"
+                android:layout_marginTop="12dp"
+                android:layout_marginBottom="12dp">
+
+                <!-- 上一首 / 播放 / 下一首：整体居中 -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal">
+
+                    <ImageButton
+                        android:id="@+id/ex_btn_prev"
+                        android:layout_width="46dp"
+                        android:layout_height="46dp"
+                        android:background="@drawable/bg_icon_button"
+                        android:contentDescription="@string/previous"
+                        android:padding="13dp"
+                        android:src="@drawable/ic_prev"
+                        app:tint="@color/text_primary" />
+
+                    <ImageButton
+                        android:id="@+id/ex_btn_play"
+                        android:layout_width="62dp"
+                        android:layout_height="62dp"
+                        android:layout_marginStart="14dp"
+                        android:background="@drawable/bg_play_button"
+                        android:contentDescription="@string/play"
+                        android:padding="17dp"
+                        android:src="@drawable/ic_play"
+                        app:tint="@color/white" />
+
+                    <ImageButton
+                        android:id="@+id/ex_btn_next"
+                        android:layout_width="46dp"
+                        android:layout_height="46dp"
+                        android:layout_marginStart="14dp"
+                        android:background="@drawable/bg_icon_button"
+                        android:contentDescription="@string/next"
+                        android:padding="13dp"
+                        android:src="@drawable/ic_next"
+                        app:tint="@color/text_primary" />
+                </LinearLayout>
+
+                <!-- 播放顺序：缩小放在右下角 -->
+                <FrameLayout
+                    android:layout_width="36dp"
+                    android:layout_height="36dp"
+                    android:layout_gravity="end|center_vertical">
+
+                    <ImageButton
+                        android:id="@+id/ex_btn_repeat"
+                        android:layout_width="36dp"
+                        android:layout_height="36dp"
+                        android:background="@drawable/bg_icon_button"
+                        android:contentDescription="@string/repeat"
+                        android:padding="9dp"
+                        android:src="@drawable/ic_repeat"
+                        app:tint="@color/text_secondary" />
+
+                    <TextView
+                        android:id="@+id/ex_repeat_badge"
+                        android:layout_width="13dp"
+                        android:layout_height="13dp"
+                        android:layout_gravity="top|end"
+                        android:background="@drawable/bg_badge_circle"
+                        android:gravity="center"
+                        android:text="1"
+                        android:textColor="@color/white"
+                        android:textSize="8sp"
+                        android:textStyle="bold"
+                        android:visibility="gone" />
+                </FrameLayout>
+            </FrameLayout>
+        </LinearLayout>
+    </FrameLayout>
+</FrameLayout>

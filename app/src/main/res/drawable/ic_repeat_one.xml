@@ -1,0 +1,38 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    <!-- 循环箭头（与 ic_repeat 一致，中间留出数字位置） -->
+    <path
+        android:pathData="M16.5,3.2 L20.4,7.1 L16.5,11"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.8" />
+    <path
+        android:pathData="M20.4,7.1 H8.1 A3.9,3.9 0 0 0 4.2,11"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.8" />
+    <path
+        android:pathData="M7.5,20.8 L3.6,16.9 L7.5,13"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.8" />
+    <path
+        android:pathData="M3.6,16.9 H15.9 A3.9,3.9 0 0 0 19.8,13"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.8" />
+    <!-- 中间的数字 1 -->
+    <path
+        android:pathData="M10.9,11.9 L12.3,10.6 V14.4"
+        android:strokeColor="#FFFFFFFF"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:strokeWidth="1.6" />
+</vector>

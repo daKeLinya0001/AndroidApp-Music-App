@@ -1,0 +1,29 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- 默认浅色主题：白底深字 -->
+    <style name="Base.Theme.MusicApp" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="android:windowBackground">@drawable/bg_screen</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightNavigationBar">true</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+    </style>
+
+    <style name="Theme.MusicApp" parent="Base.Theme.MusicApp" />
+
+    <style name="TextAppearance.MusicApp.Title" parent="TextAppearance.Material3.HeadlineMedium">
+        <item name="android:textColor">@color/text_primary</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:letterSpacing">-0.02</item>
+    </style>
+
+    <style name="TextAppearance.MusicApp.Eyebrow" parent="TextAppearance.Material3.LabelSmall">
+        <item name="android:textColor">@color/primary_light</item>
+        <item name="android:textAllCaps">true</item>
+        <item name="android:letterSpacing">0.22</item>
+    </style>
+</resources>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- 应用图标底色：白底黑音符 -->
+    <color name="ic_launcher_background">#FFFFFFFF</color>
+
+    <!-- 背景（浅色：白底） -->
+    <color name="bg_deep">#FFFFFFFF</color>
+    <color name="bg_mid">#FFEDF2FA</color>
+
+    <!-- 卡片 -->
+    <color name="card_fill">#FFF7F9FD</color>
+    <color name="card_base">#FFF7F9FD</color>
+    <color name="card_stroke">#FFE2E8F2</color>
+
+    <!-- 主色（默认强调色为黑色） -->
+    <color name="primary">#FF111111</color>
+    <color name="primary_dark">#FF000000</color>
+    <color name="primary_light">#FF454545</color>
+
+    <!-- 文字 -->
+    <color name="text_primary">#FF0F172A</color>
+    <color name="text_secondary">#FF5A6B85</color>
+    <color name="text_tertiary">#FF8A97AB</color>
+
+    <!-- 其它 -->
+    <color name="bar_default">#FF4F8CFF</color>
+    <color name="divider">#140F172A</color>
+    <color name="track_inactive">#1A0F172A</color>
+    <color name="search_bg">#0D0F172A</color>
+    <color name="icon_button_bg">#FFF0F2F7</color>
+    <color name="overlay_dark">#B3FFFFFF</color>
+    <color name="danger">#FFEF4444</color>
+</resources>

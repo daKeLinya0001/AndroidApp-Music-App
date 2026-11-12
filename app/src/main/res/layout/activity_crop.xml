@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/crop_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FF000000">
+
+    <com.example.musicapp.ui.CropView
+        android:id="@+id/crop_view"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingTop="64dp"
+        android:paddingBottom="64dp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:layout_gravity="top"
+        android:background="@drawable/bg_crop_scrim_top" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+        android:paddingStart="16dp"
+        android:paddingTop="20dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/btn_crop_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:gravity="center_vertical"
+            android:paddingEnd="16dp"
+            android:text="@string/cancel"
+            android:textColor="#FFFFFFFF"
+            android:textSize="15sp" />
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="1dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/btn_crop_done"
+            android:layout_width="wrap_content"
+            android:layout_height="44dp"
+            android:gravity="center_vertical"
+            android:paddingStart="16dp"
+            android:text="@string/crop_done"
+            android:textColor="#FFFFFFFF"
+            android:textSize="15sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="96dp"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_crop_scrim_bottom" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:gravity="center"
+        android:paddingBottom="28dp"
+        android:text="@string/crop_hint"
+        android:textColor="#CCFFFFFF"
+        android:textSize="12sp" />
+</FrameLayout>
