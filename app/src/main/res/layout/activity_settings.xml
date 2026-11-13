@@ -8,6 +8,26 @@
     android:background="@drawable/bg_screen"
     tools:context=".SettingsActivity">
 
+    <!-- 与主界面同步的壁纸背景 -->
+    <FrameLayout
+        android:id="@+id/settings_wallpaper_layer"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+        <ImageView
+            android:id="@+id/settings_wallpaper_image"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:contentDescription="@null"
+            android:scaleType="centerCrop" />
+
+        <View
+            android:id="@+id/settings_wallpaper_scrim"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent" />
+    </FrameLayout>
+
     <androidx.core.widget.NestedScrollView
         android:id="@+id/settings_scroll"
         android:layout_width="match_parent"

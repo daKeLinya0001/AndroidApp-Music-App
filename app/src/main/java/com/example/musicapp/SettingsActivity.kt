@@ -1,17 +1,21 @@
 package com.example.musicapp
 
 import android.app.Activity
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.graphics.Color
 import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.content.Intent
 import android.content.res.Configuration
+import android.media.MediaMetadataRetriever
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
 import android.view.View
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioButton
 import android.widget.RadioGroup
@@ -73,6 +77,11 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var swParticles: MaterialSwitch
     private lateinit var swParticleFullscreen: MaterialSwitch
     private lateinit var swHideDisc: MaterialSwitch
+    private lateinit var wallpaperLayer: View
+    private lateinit var wallpaperImage: ImageView
+    private lateinit var wallpaperScrim: View
+    private var wallpaperBitmap: Bitmap? = null
+    private var wallpaperAppliedKey = ""
     private lateinit var sliderParticleSize: Slider
     private lateinit var tvParticleSizeValue: TextView
     private lateinit var sliderParticleCount: Slider
@@ -131,6 +140,7 @@ class SettingsActivity : AppCompatActivity() {
             )
             settings.save(this)
             updateWallpaperStatus()
+            applyWallpaperBackground()
         } else {
             runCatching { File(path).delete() }
         }
@@ -155,6 +165,7 @@ class SettingsActivity : AppCompatActivity() {
         bindValues()
         setupListeners()
         applyColors()
+        applyWallpaperBackground()
 
         // 进程/页面重建后恢复待确认的壁纸，避免取景返回时丢失路径变成孤儿文件
         pendingWallpaperPath = savedInstanceState?.getString(KEY_PENDING_PATH) ?: ""
@@ -166,6 +177,11 @@ class SettingsActivity : AppCompatActivity() {
         super.onSaveInstanceState(outState)
         outState.putString(KEY_PENDING_PATH, pendingWallpaperPath)
         outState.putString(KEY_PENDING_TYPE, pendingWallpaperType)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        applyWallpaperBackground()
     }
 
     /** 清掉没有被任何设置引用的壁纸文件（例如取景框被系统回收后遗留的临时文件） */
@@ -195,6 +211,9 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun bindViews() {
         scroll = findViewById(R.id.settings_scroll)
+        wallpaperLayer = findViewById(R.id.settings_wallpaper_layer)
+        wallpaperImage = findViewById(R.id.settings_wallpaper_image)
+        wallpaperScrim = findViewById(R.id.settings_wallpaper_scrim)
         swSpectrum = findViewById(R.id.sw_spectrum)
         swLibrarySpectrum = findViewById(R.id.sw_library_spectrum)
         rgPlacement = findViewById(R.id.rg_placement)
@@ -356,6 +375,63 @@ class SettingsActivity : AppCompatActivity() {
         settings = settings.copy(wallpaperType = "", wallpaperPath = "")
         settings.save(this)
         updateWallpaperStatus()
+        applyWallpaperBackground()
+    }
+
+    /**
+     * 把主界面的壁纸同步到设置页背景：
+     * 图片直接解码显示，视频取第一帧做静态背景，再压一层随主题变化的蒙版保证文字可读。
+     */
+    private fun applyWallpaperBackground() {
+        val night = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
+            Configuration.UI_MODE_NIGHT_YES
+        val key = "${settings.wallpaperType}|${settings.wallpaperPath}|$night"
+        if (key == wallpaperAppliedKey) return
+        wallpaperAppliedKey = key
+
+        val bitmap = when (settings.wallpaperType) {
+            "image" -> decodeWallpaperImage(settings.wallpaperPath)
+            "video" -> decodeVideoFrame(settings.wallpaperPath)
+            else -> null
+        }
+
+        val previous = wallpaperBitmap
+        wallpaperBitmap = bitmap
+        if (bitmap == null) {
+            wallpaperImage.setImageDrawable(null)
+            wallpaperLayer.visibility = View.GONE
+        } else {
+            wallpaperImage.setImageBitmap(bitmap)
+            wallpaperLayer.visibility = View.VISIBLE
+        }
+        if (previous != null && previous !== bitmap && !previous.isRecycled) previous.recycle()
+
+        wallpaperScrim.setBackgroundColor(if (night) 0xA6070B14.toInt() else 0x99FFFFFF.toInt())
+    }
+
+    private fun decodeWallpaperImage(path: String): Bitmap? {
+        if (path.isBlank()) return null
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        runCatching { BitmapFactory.decodeFile(path, bounds) }
+        var sample = 1
+        while (bounds.outWidth / (sample * 2) >= 1440 || bounds.outHeight / (sample * 2) >= 1440) {
+            sample *= 2
+        }
+        val options = BitmapFactory.Options().apply { inSampleSize = sample }
+        return runCatching { BitmapFactory.decodeFile(path, options) }.getOrNull()
+    }
+
+    private fun decodeVideoFrame(path: String): Bitmap? {
+        if (path.isBlank()) return null
+        return runCatching {
+            val retriever = MediaMetadataRetriever()
+            try {
+                retriever.setDataSource(path)
+                retriever.getFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+            } finally {
+                runCatching { retriever.release() }
+            }
+        }.getOrNull()
     }
 
     private fun deleteWallpaperFile(path: String) {

@@ -69,6 +69,14 @@ class SpectrumView @JvmOverloads constructor(
             invalidate()
         }
 
+    /** 频谱柱顶端飞出的火花粒子；开启全屏粒子特效时自动关闭，避免两种粒子叠在一起 */
+    var sparksEnabled: Boolean = true
+        set(value) {
+            if (field == value) return
+            field = value
+            invalidate()
+        }
+
     /** 柱子数量，默认 32；全屏径向模式用 64 根 */
     var barCount: Int = BAR_COUNT
         set(value) {
@@ -302,7 +310,7 @@ class SpectrumView @JvmOverloads constructor(
             // 轻微减速，粒子上升到一定高度后变慢
             spark.vy += dp(10f) * delta
         }
-        if (!isPlaying || delta <= 0f) return
+        if (!isPlaying || delta <= 0f || !sparksEnabled) return
 
         val width = width.toFloat()
         val height = height.toFloat()
@@ -502,6 +510,7 @@ class SpectrumView @JvmOverloads constructor(
     }
 
     private fun drawSparks(canvas: Canvas) {
+        if (!sparksEnabled) return
         if (barOpacity <= 0) return
         sparkPaint.color = blend(barColor, Color.WHITE, 0.25f)
         sparkHaloPaint.color = barColor

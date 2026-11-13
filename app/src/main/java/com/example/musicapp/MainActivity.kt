@@ -438,6 +438,7 @@ class MainActivity : AppCompatActivity() {
         spectrumPlayer.barOpacity = settings.barOpacity
         spectrumPlayer.maxBarHeightDp = settings.maxBarHeight
         spectrumPlayer.speed = settings.barSpeed
+        spectrumPlayer.sparksEnabled = !settings.particleFullscreen
         spectrumPlayer.provider = { engine.latestSpectrum }
         spectrumPlayer.onBass = { bass ->
             val scale = 1f + bass * 0.06f
@@ -475,6 +476,7 @@ class MainActivity : AppCompatActivity() {
         exSpectrum.barOpacity = settings.barOpacity
         exSpectrum.maxBarHeightDp = settings.maxBarHeight
         exSpectrum.speed = settings.barSpeed
+        exSpectrum.sparksEnabled = !settings.particleFullscreen
         exSpectrum.provider = { engine.latestSpectrum }
         exSpectrum.onBass = { bass ->
             val scale = 1f + bass * 0.06f
@@ -492,6 +494,7 @@ class MainActivity : AppCompatActivity() {
         spectrumLibrary.barColor = resolvedBarColor()
         spectrumLibrary.barOpacity = settings.barOpacity
         spectrumLibrary.speed = settings.barSpeed
+        spectrumLibrary.sparksEnabled = !settings.particleFullscreen
         // 音乐库底部预留了频谱区，柱子高度限制在预留区内，避免压住曲目文字
         spectrumLibrary.maxBarHeightDp = settings.maxBarHeight.coerceAtMost(72)
         spectrumLibrary.provider = { engine.latestSpectrum }
