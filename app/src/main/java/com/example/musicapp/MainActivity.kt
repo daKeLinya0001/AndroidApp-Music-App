@@ -29,6 +29,7 @@ import android.view.LayoutInflater
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
+import android.view.ViewParent
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
 import android.widget.EditText
@@ -1034,6 +1035,8 @@ class MainActivity : AppCompatActivity() {
                 .setInterpolator(DecelerateInterpolator(1.4f))
                 .start()
             expandedScrim.animate().alpha(1f).setDuration(TRANSITION_MS.toLong()).start()
+            // 布局完成后再算一次粒子圆心，否则会停留在全屏随机漂浮模式
+            expandedSheet.post { updateExpandedEffectOrigin() }
         }
     }
 
@@ -1085,15 +1088,29 @@ class MainActivity : AppCompatActivity() {
 
     /** 全屏时把粒子/光晕的发射中心对齐到唱片圆心（唱片隐藏时用可视化区域中心） */
     private fun updateExpandedEffectOrigin() {
-        if (expandedSheet.width == 0) return
+        if (!isExpanded) return
         val anchor = if (settings.hideDisc) exVisualizer else exDiscContainer
-        if (anchor.width == 0) return
-        val sheetLocation = IntArray(2)
-        expandedSheet.getLocationInWindow(sheetLocation)
-        val anchorLocation = IntArray(2)
-        anchor.getLocationInWindow(anchorLocation)
-        val centerX = anchorLocation[0] - sheetLocation[0] + anchor.width / 2f
-        val centerY = anchorLocation[1] - sheetLocation[1] + anchor.height / 2f
+        if (anchor.width == 0 || exParticle.width == 0) {
+            // 还在测量阶段，下一帧再试
+            expandedSheet.post { updateExpandedEffectOrigin() }
+            return
+        }
+
+        // 用布局坐标累加，而不是 getLocationInWindow：
+        // 后者会带上缩放/旋转，唱盘每帧在转，算出来的圆心会漂移，粒子看起来就在乱动
+        var x = anchor.x
+        var y = anchor.y
+        var node: ViewParent? = anchor.parent
+        while (node is View) {
+            val parentView: View = node
+            if (parentView === exParticle) break
+            x += parentView.x
+            y += parentView.y
+            node = parentView.parent
+        }
+
+        val centerX = x + anchor.width / 2f
+        val centerY = y + anchor.height / 2f
         val radius = if (settings.hideDisc) anchor.width * 0.28f else anchor.width / 2f
         exParticle.setDiscOrigin(true, centerX, centerY, radius)
     }
@@ -1122,6 +1139,7 @@ class MainActivity : AppCompatActivity() {
         } else {
             DiscView.DiscStyle.BLACK
         }
+        if (isExpanded) updateExpandedEffectOrigin()
         updateExpandedProgress()
     }
 

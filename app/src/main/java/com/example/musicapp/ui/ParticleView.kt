@@ -184,14 +184,15 @@ class ParticleView @JvmOverloads constructor(
 
         if (discMode && discRadius > 0f) {
             val angle = Random.nextFloat() * (2 * PI).toFloat()
-            val startRadius = discRadius * (1.02f + Random.nextFloat() * 0.22f)
-            val speed = dp(22f) + Random.nextFloat() * dp(48f)
+            val startRadius = discRadius * (1.02f + Random.nextFloat() * 0.18f)
+            // 贴着唱片外圈缓慢扩散，飞太快会显得画面很乱
+            val speed = dp(12f) + Random.nextFloat() * dp(26f)
             particle.x = discX + cos(angle) * startRadius
             particle.y = discY + sin(angle) * startRadius
             particle.vx = cos(angle) * speed
             particle.vy = sin(angle) * speed
             particle.alpha = 0.45f + Random.nextFloat() * 0.4f
-            particle.maxLife = 1.1f + Random.nextFloat() * 1.1f
+            particle.maxLife = 0.9f + Random.nextFloat() * 0.9f
             particle.life = particle.maxLife
             return
         }
