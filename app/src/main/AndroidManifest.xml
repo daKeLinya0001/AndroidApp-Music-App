@@ -2,6 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- 歌词自动匹配：请求网易云 / QQ 音乐 / 酷狗的公开歌词接口 -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Visualizer 读取音频 FFT 需要录音权限；拒绝后自动退化为模拟律动 -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
 

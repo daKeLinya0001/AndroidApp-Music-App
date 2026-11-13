@@ -8,7 +8,7 @@
     android:background="@drawable/bg_screen"
     tools:context=".SettingsActivity">
 
-    <!-- 与主界面同步的壁纸背景 -->
+    <!-- 与主界面同步的壁纸背景（完整显示，不加半透明蒙版） -->
     <FrameLayout
         android:id="@+id/settings_wallpaper_layer"
         android:layout_width="match_parent"
@@ -21,11 +21,6 @@
             android:layout_height="match_parent"
             android:contentDescription="@null"
             android:scaleType="centerCrop" />
-
-        <View
-            android:id="@+id/settings_wallpaper_scrim"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent" />
     </FrameLayout>
 
     <androidx.core.widget.NestedScrollView
@@ -58,6 +53,7 @@
                     android:orientation="vertical">
 
                     <TextView
+                        android:id="@+id/tv_settings_label"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:letterSpacing="0.22"
@@ -67,6 +63,7 @@
                         android:textSize="10sp" />
 
                     <TextView
+                        android:id="@+id/tv_settings_title"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
@@ -76,6 +73,7 @@
                         android:textStyle="bold" />
 
                     <TextView
+                        android:id="@+id/tv_settings_hint"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"

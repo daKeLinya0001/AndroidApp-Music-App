@@ -27,6 +27,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.widget.NestedScrollView
 import com.example.musicapp.play.PlayerSettings
@@ -79,7 +80,10 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var swHideDisc: MaterialSwitch
     private lateinit var wallpaperLayer: View
     private lateinit var wallpaperImage: ImageView
-    private lateinit var wallpaperScrim: View
+    private lateinit var tvSettingsLabel: TextView
+    private lateinit var tvSettingsTitle: TextView
+    private lateinit var tvSettingsHint: TextView
+    private lateinit var btnClose: ImageButton
     private var wallpaperBitmap: Bitmap? = null
     private var wallpaperAppliedKey = ""
     private lateinit var sliderParticleSize: Slider
@@ -213,7 +217,10 @@ class SettingsActivity : AppCompatActivity() {
         scroll = findViewById(R.id.settings_scroll)
         wallpaperLayer = findViewById(R.id.settings_wallpaper_layer)
         wallpaperImage = findViewById(R.id.settings_wallpaper_image)
-        wallpaperScrim = findViewById(R.id.settings_wallpaper_scrim)
+        tvSettingsLabel = findViewById(R.id.tv_settings_label)
+        tvSettingsTitle = findViewById(R.id.tv_settings_title)
+        tvSettingsHint = findViewById(R.id.tv_settings_hint)
+        btnClose = findViewById(R.id.btn_close)
         swSpectrum = findViewById(R.id.sw_spectrum)
         swLibrarySpectrum = findViewById(R.id.sw_library_spectrum)
         rgPlacement = findViewById(R.id.rg_placement)
@@ -380,12 +387,10 @@ class SettingsActivity : AppCompatActivity() {
 
     /**
      * 把主界面的壁纸同步到设置页背景：
-     * 图片直接解码显示，视频取第一帧做静态背景，再压一层随主题变化的蒙版保证文字可读。
+     * 图片直接解码显示，视频取第一帧做静态背景，按屏幕铺满，不再叠加任何蒙版。
      */
     private fun applyWallpaperBackground() {
-        val night = (resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK) ==
-            Configuration.UI_MODE_NIGHT_YES
-        val key = "${settings.wallpaperType}|${settings.wallpaperPath}|$night"
+        val key = "${settings.wallpaperType}|${settings.wallpaperPath}"
         if (key == wallpaperAppliedKey) return
         wallpaperAppliedKey = key
 
@@ -406,7 +411,42 @@ class SettingsActivity : AppCompatActivity() {
         }
         if (previous != null && previous !== bitmap && !previous.isRecycled) previous.recycle()
 
-        wallpaperScrim.setBackgroundColor(if (night) 0xA6070B14.toInt() else 0x99FFFFFF.toInt())
+        applyHeaderContrast(bitmap)
+    }
+
+    /** 壁纸是深色时把标题区文字改成白色，避免「深字压深图」看不清 */
+    private fun applyHeaderContrast(bitmap: Bitmap?) {
+        val darkWallpaper = bitmap != null && topLuminance(bitmap) < 0.42f
+        val label = if (darkWallpaper) Color.WHITE else ContextCompat.getColor(this, R.color.primary_light)
+        val title = if (darkWallpaper) Color.WHITE else ContextCompat.getColor(this, R.color.text_primary)
+        val hint = if (darkWallpaper) {
+            0xCCFFFFFF.toInt()
+        } else {
+            ContextCompat.getColor(this, R.color.text_secondary)
+        }
+        tvSettingsLabel.setTextColor(label)
+        tvSettingsTitle.setTextColor(title)
+        tvSettingsHint.setTextColor(hint)
+        btnClose.imageTintList = android.content.res.ColorStateList.valueOf(hint)
+    }
+
+    private fun topLuminance(bitmap: Bitmap): Float {
+        val stepX = (bitmap.width / 24).coerceAtLeast(1)
+        val stepY = (bitmap.height / 24).coerceAtLeast(1)
+        val limit = (bitmap.height / 3).coerceAtLeast(1)
+        var total = 0.0
+        var count = 0
+        var y = 0
+        while (y < limit) {
+            var x = 0
+            while (x < bitmap.width) {
+                total += ColorUtils.calculateLuminance(bitmap.getPixel(x, y))
+                count++
+                x += stepX
+            }
+            y += stepY
+        }
+        return if (count == 0) 1f else (total / count).toFloat()
     }
 
     private fun decodeWallpaperImage(path: String): Bitmap? {

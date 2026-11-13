@@ -53,6 +53,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.NestedScrollView
 import com.example.musicapp.data.Track
 import com.example.musicapp.data.TrackStore
+import com.example.musicapp.play.LyricLine
+import com.example.musicapp.play.LyricsRepository
 import com.example.musicapp.play.PlaybackService
 import com.example.musicapp.play.PlayerEngine
 import com.example.musicapp.play.PlayerSettings
@@ -118,6 +120,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var exTrackTitle: TextView
     private lateinit var exTrackSub: TextView
     private lateinit var exSeek: SeekBar
+    private lateinit var exLyricsCurrent: TextView
+    private lateinit var exLyricsNext: TextView
     private lateinit var exTimeCurrent: TextView
     private lateinit var exTimeTotal: TextView
     private lateinit var exBtnRepeat: ImageButton
@@ -139,6 +143,12 @@ class MainActivity : AppCompatActivity() {
 
     private val tickHandler = Handler(Looper.getMainLooper())
     private var rotationAnimator: ValueAnimator? = null
+
+    private val lyricsRepository by lazy { LyricsRepository(this) }
+    private var lyricTrackId = ""
+    private var lyricLines: List<LyricLine> = emptyList()
+    private var lyricIndex = -1
+    private var lyricRequestToken = 0
 
     private val pickAudio = registerForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
@@ -277,6 +287,8 @@ class MainActivity : AppCompatActivity() {
         expandedContent = findViewById(R.id.expanded_content)
         exDiscView = findViewById(R.id.ex_disc_view)
         exSpectrum = findViewById(R.id.ex_spectrum)
+        exLyricsCurrent = findViewById(R.id.ex_lyrics_current)
+        exLyricsNext = findViewById(R.id.ex_lyrics_next)
         exParticle = findViewById(R.id.ex_particle)
         exDiscContainer = findViewById(R.id.ex_disc_container)
         exVisualizer = findViewById(R.id.ex_visualizer)
@@ -808,9 +820,60 @@ class MainActivity : AppCompatActivity() {
             engine.clearError()
         }
 
+        syncLyrics(track)
         updateProgress()
         updateTicker()
         applyExpandedState()
+    }
+
+    // ------------------------------------------------------------ 歌词
+
+    /** 切歌或开始播放时自动去网上匹配一次歌词，结果按曲目缓存 */
+    private fun syncLyrics(track: Track?) {
+        val id = track?.id ?: ""
+        if (id == lyricTrackId) return
+        lyricTrackId = id
+        lyricLines = emptyList()
+        lyricIndex = -1
+        val token = ++lyricRequestToken
+
+        if (track == null) {
+            showLyricText("", "")
+            return
+        }
+
+        showLyricText(getString(R.string.lyrics_loading), "")
+        val name = track.name
+        val duration = track.durationMs
+        Thread {
+            val lines = runCatching { lyricsRepository.load(name, duration) }.getOrNull()
+            runOnUiThread {
+                if (token != lyricRequestToken || isFinishing || isDestroyed) return@runOnUiThread
+                lyricLines = lines ?: emptyList()
+                lyricIndex = -1
+                if (lyricLines.isEmpty()) {
+                    showLyricText(getString(R.string.lyrics_none), "")
+                } else {
+                    updateLyricLine(engine.currentPositionMs.toLong())
+                }
+            }
+        }.start()
+    }
+
+    private fun showLyricText(current: String, next: String) {
+        exLyricsCurrent.text = current
+        exLyricsNext.text = next
+        exLyricsNext.visibility = if (next.isEmpty()) View.GONE else View.VISIBLE
+    }
+
+    private fun updateLyricLine(positionMs: Long) {
+        if (lyricLines.isEmpty()) return
+        val index = lyricLines.indexOfLast { it.timeMs <= positionMs + 100 }
+        if (index == lyricIndex) return
+        lyricIndex = index
+        val current = lyricLines.getOrNull(index)?.text ?: ""
+        val next = lyricLines.getOrNull(index + 1)?.text ?: ""
+        showLyricText(current, next)
     }
 
     private fun updateProgress() {
@@ -829,6 +892,7 @@ class MainActivity : AppCompatActivity() {
             tvTimeTotal.text = getString(R.string.unknown_duration)
         }
         if (isExpanded) updateExpandedProgress()
+        updateLyricLine(engine.currentPositionMs.toLong())
     }
 
     private fun updateExpandedProgress() {

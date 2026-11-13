@@ -114,6 +114,37 @@
                 android:textColor="@color/text_secondary"
                 android:textSize="12sp" />
 
+            <!-- 同步歌词：仅全屏显示，位于进度条上方 -->
+            <LinearLayout
+                android:id="@+id/ex_lyrics_block"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="22dp"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/ex_lyrics_current"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:ellipsize="end"
+                    android:gravity="center"
+                    android:maxLines="2"
+                    android:textColor="@color/text_primary"
+                    android:textSize="17sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/ex_lyrics_next"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="6dp"
+                    android:ellipsize="end"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:textColor="@color/text_tertiary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
             <Space
                 android:layout_width="1dp"
                 android:layout_height="0dp"

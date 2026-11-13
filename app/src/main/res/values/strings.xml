@@ -59,6 +59,8 @@
     <string name="disc_black">黑色</string>
     <string name="disc_color">彩色</string>
     <string name="hide_disc">隐藏黑胶唱片</string>
+    <string name="lyrics_loading">歌词匹配中…</string>
+    <string name="lyrics_none">暂无歌词</string>
     <string name="hide_disc_hint">开启后主界面与全屏都不显示唱片，只保留文字、进度与频谱。</string>
     <string name="disc_center">唱片内圈</string>
     <string name="disc_center_hint">默认为白色圆标；可上传图片替换（居中裁切）。</string>
