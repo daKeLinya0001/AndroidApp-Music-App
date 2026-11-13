@@ -34,6 +34,13 @@
             android:layout_height="match_parent" />
     </FrameLayout>
 
+    <!-- 全屏粒子层：开启「全屏粒子特效」时替代卡片内的粒子，铺满整个主界面 -->
+    <com.example.musicapp.ui.ParticleView
+        android:id="@+id/particle_fullscreen"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone" />
+
     <androidx.core.widget.NestedScrollView
         android:id="@+id/scroll"
         android:layout_width="match_parent"

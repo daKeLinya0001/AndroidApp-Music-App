@@ -81,6 +81,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var spectrumPlayer: SpectrumView
     private lateinit var spectrumLibrary: SpectrumView
     private lateinit var particleView: ParticleView
+    private lateinit var particleFullscreen: ParticleView
     private lateinit var playerCard: View
     private lateinit var libraryCard: View
     private lateinit var discContainer: FrameLayout
@@ -222,6 +223,7 @@ class MainActivity : AppCompatActivity() {
         scroll = findViewById(R.id.scroll)
         spectrumPlayer = findViewById(R.id.spectrum_player)
         particleView = findViewById(R.id.particle_view)
+        particleFullscreen = findViewById(R.id.particle_fullscreen)
         spectrumLibrary = findViewById(R.id.spectrum_library)
         playerCard = findViewById(R.id.player_card)
         libraryCard = findViewById(R.id.library_card)
@@ -443,12 +445,22 @@ class MainActivity : AppCompatActivity() {
             discContainer.scaleY = scale
         }
 
-        // 粒子与光晕：颜色默认跟随频谱柱，也可在设置里自定义
-        particleView.visibility = if (settings.particlesEnabled) View.VISIBLE else View.GONE
+        // 粒子与光晕：颜色默认跟随频谱柱，也可在设置里自定义；
+        // 开启「全屏粒子特效」时用铺满整屏的粒子层替代卡片内的那层
+        val fullScreenParticles = settings.particlesEnabled && settings.particleFullscreen
+        particleView.visibility =
+            if (settings.particlesEnabled && !settings.particleFullscreen) View.VISIBLE else View.GONE
+        particleFullscreen.visibility = if (fullScreenParticles) View.VISIBLE else View.GONE
+
         particleView.particleColor = resolvedParticleColor()
         particleView.particleSize = settings.particleSize
         particleView.glowSize = settings.glowSize
         particleView.provider = { engine.latestSpectrum }
+
+        particleFullscreen.particleColor = resolvedParticleColor()
+        particleFullscreen.particleSize = settings.particleSize
+        particleFullscreen.glowSize = settings.glowSize
+        particleFullscreen.provider = { engine.latestSpectrum }
 
         // 全屏播放器里的同一套频谱与粒子
         exSpectrum.visibility = if (settings.spectrumEnabled) View.VISIBLE else View.GONE
@@ -772,7 +784,10 @@ class MainActivity : AppCompatActivity() {
 
         spectrumPlayer.isPlaying = engine.isPlaying && hasTrack && settings.spectrumEnabled && !isExpanded
         spectrumLibrary.isPlaying = engine.isPlaying && hasTrack && !isExpanded
-        particleView.isPlaying = engine.isPlaying && hasTrack && settings.particlesEnabled && !isExpanded
+        val mainParticlesActive =
+            engine.isPlaying && hasTrack && settings.particlesEnabled && !isExpanded
+        particleView.isPlaying = mainParticlesActive && !settings.particleFullscreen
+        particleFullscreen.isPlaying = mainParticlesActive && settings.particleFullscreen
         exSpectrum.isPlaying = engine.isPlaying && hasTrack && settings.spectrumEnabled && isExpanded
         exParticle.isPlaying = engine.isPlaying && hasTrack && settings.particlesEnabled && isExpanded
         spectrumLibrary.visibility =

@@ -71,6 +71,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var presetsContainer: LinearLayout
     private lateinit var etCustomColor: EditText
     private lateinit var swParticles: MaterialSwitch
+    private lateinit var swParticleFullscreen: MaterialSwitch
     private lateinit var swHideDisc: MaterialSwitch
     private lateinit var sliderParticleSize: Slider
     private lateinit var tvParticleSizeValue: TextView
@@ -219,6 +220,7 @@ class SettingsActivity : AppCompatActivity() {
         presetsContainer = findViewById(R.id.presets_container)
         etCustomColor = findViewById(R.id.et_custom_color)
         swParticles = findViewById(R.id.sw_particles)
+        swParticleFullscreen = findViewById(R.id.sw_particle_fullscreen)
         swHideDisc = findViewById(R.id.sw_hide_disc)
         sliderParticleSize = findViewById(R.id.slider_particle_size)
         tvParticleSizeValue = findViewById(R.id.tv_particle_size_value)
@@ -269,6 +271,7 @@ class SettingsActivity : AppCompatActivity() {
         sliderCardOpacity.value = settings.cardOpacity.toFloat()
         sliderBlur.value = settings.blurStrength.toFloat()
         swParticles.isChecked = settings.particlesEnabled
+        swParticleFullscreen.isChecked = settings.particleFullscreen
         swHideDisc.isChecked = settings.hideDisc
         updateDiscControls()
         sliderParticleSize.value = settings.particleSize.toFloat()
@@ -509,6 +512,12 @@ class SettingsActivity : AppCompatActivity() {
             settings.save(this)
         }
 
+        swParticleFullscreen.setOnCheckedChangeListener { _, checked ->
+            if (updating) return@setOnCheckedChangeListener
+            settings = settings.copy(particleFullscreen = checked)
+            settings.save(this)
+        }
+
         sliderParticleSize.addOnChangeListener { _, value, fromUser ->
             if (!fromUser || updating) return@addOnChangeListener
             settings = settings.copy(particleSize = value.roundToInt().coerceIn(0, 100))
@@ -518,7 +527,7 @@ class SettingsActivity : AppCompatActivity() {
 
         sliderGlowSize.addOnChangeListener { _, value, fromUser ->
             if (!fromUser || updating) return@addOnChangeListener
-            settings = settings.copy(glowSize = value.roundToInt().coerceIn(0, 100))
+            settings = settings.copy(glowSize = value.roundToInt().coerceIn(0, 150))
             settings.save(this)
             tvGlowSizeValue.text = "${settings.glowSize}"
         }

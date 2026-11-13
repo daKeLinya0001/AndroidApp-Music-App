@@ -159,6 +159,7 @@ class SpectrumView @JvmOverloads constructor(
 
     private var glowShader: LinearGradient? = null
     private var glowHeight = 0f
+    private var glowColor = 0
 
     private var radialShader: RadialGradient? = null
     private var radialKey = 0f
@@ -518,14 +519,22 @@ class SpectrumView @JvmOverloads constructor(
 
     private fun drawAmbientGlow(canvas: Canvas, width: Float, height: Float) {
         if (!ambientGlow) return
-        if (glowShader == null || glowHeight != height) {
+        if (glowShader == null || glowHeight != height || glowColor != barColor) {
+            // 底部氛围光跟随频谱柱颜色
+            val glow = Color.argb(
+                15,
+                Color.red(barColor),
+                Color.green(barColor),
+                Color.blue(barColor)
+            )
             glowShader = LinearGradient(
                 0f, 0f, 0f, height,
                 Color.TRANSPARENT,
-                Color.argb(15, 37, 99, 235),
+                glow,
                 Shader.TileMode.CLAMP
             )
             glowHeight = height
+            glowColor = barColor
         }
         glowPaint.shader = glowShader
         canvas.drawRect(0f, 0f, width, height, glowPaint)

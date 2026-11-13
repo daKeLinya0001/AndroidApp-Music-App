@@ -23,6 +23,8 @@ data class PlayerSettings(
     val discMode: String = DISC_BLACK,
     /** 隐藏黑胶唱片（主界面与全屏都不再显示） */
     val hideDisc: Boolean = false,
+    /** 粒子特效铺满整屏（主界面与全屏一致） */
+    val particleFullscreen: Boolean = false,
     /** 唱片内圈图片路径，空 = 默认白色内圈 */
     val discLabelPath: String = "",
     /** 粒子与光晕特效 */
@@ -65,6 +67,7 @@ data class PlayerSettings(
             .putString(KEY_THEME, themeMode)
             .putString(KEY_DISC, discMode)
             .putBoolean(KEY_HIDE_DISC, hideDisc)
+            .putBoolean(KEY_PARTICLE_FULLSCREEN, particleFullscreen)
             .putString(KEY_DISC_LABEL, discLabelPath)
             .putBoolean(KEY_PARTICLES, particlesEnabled)
             .putInt(KEY_PARTICLE_SIZE, particleSize)
@@ -112,6 +115,7 @@ data class PlayerSettings(
         private const val KEY_THEME = "themeMode"
         private const val KEY_DISC = "discMode"
         private const val KEY_HIDE_DISC = "hideDisc"
+        private const val KEY_PARTICLE_FULLSCREEN = "particleFullscreen"
         private const val KEY_DISC_LABEL = "discLabelPath"
         private const val KEY_PARTICLES = "particlesEnabled"
         private const val KEY_PARTICLE_SIZE = "particleSize"
@@ -155,12 +159,13 @@ data class PlayerSettings(
                 themeMode = if (theme == THEME_DARK || theme == THEME_SYSTEM) theme else THEME_LIGHT,
                 discMode = if (disc == DISC_COLOR) DISC_COLOR else DISC_BLACK,
                 hideDisc = prefs.getBoolean(KEY_HIDE_DISC, false),
+                particleFullscreen = prefs.getBoolean(KEY_PARTICLE_FULLSCREEN, false),
                 discLabelPath = prefs.getString(KEY_DISC_LABEL, null) ?: "",
                 particlesEnabled = prefs.getBoolean(KEY_PARTICLES, true),
                 particleSize = prefs.getInt(KEY_PARTICLE_SIZE, 50).coerceIn(0, 100),
                 particleFollowBar = prefs.getBoolean(KEY_PARTICLE_FOLLOW, true),
                 particleColor = normaliseFollowThemeDefault(prefs.getInt(KEY_PARTICLE_COLOR, 0)),
-                glowSize = prefs.getInt(KEY_GLOW_SIZE, 50).coerceIn(0, 100),
+                glowSize = prefs.getInt(KEY_GLOW_SIZE, 50).coerceIn(0, 150),
                 arcAmplitude = prefs.getInt(KEY_ARC_AMPLITUDE, 80).coerceIn(0, 100),
                 arcBlur = prefs.getInt(KEY_ARC_BLUR, 0).coerceIn(0, 100),
                 accentColor = prefs.getInt(KEY_ACCENT, 0),

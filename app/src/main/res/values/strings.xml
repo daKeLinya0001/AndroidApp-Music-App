@@ -85,6 +85,8 @@
     <string name="particles_section">特效</string>
     <string name="particles_enabled">粒子特效</string>
     <string name="particles_enabled_hint">播放器卡片后方漂浮的光点与底部光晕，随低频脉动。</string>
+    <string name="particle_fullscreen">全屏粒子特效</string>
+    <string name="particle_fullscreen_hint">开启后主界面粒子也铺满整屏，与全屏模式保持一致。</string>
     <string name="particle_size">粒子大小</string>
     <string name="glow_size">光晕大小</string>
     <string name="arc_amplitude">弧线震动幅度</string>
