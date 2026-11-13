@@ -75,6 +75,8 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var swHideDisc: MaterialSwitch
     private lateinit var sliderParticleSize: Slider
     private lateinit var tvParticleSizeValue: TextView
+    private lateinit var sliderParticleCount: Slider
+    private lateinit var tvParticleCountValue: TextView
     private lateinit var sliderGlowSize: Slider
     private lateinit var tvGlowSizeValue: TextView
     private lateinit var sliderArcAmplitude: Slider
@@ -224,6 +226,8 @@ class SettingsActivity : AppCompatActivity() {
         swHideDisc = findViewById(R.id.sw_hide_disc)
         sliderParticleSize = findViewById(R.id.slider_particle_size)
         tvParticleSizeValue = findViewById(R.id.tv_particle_size_value)
+        sliderParticleCount = findViewById(R.id.slider_particle_count)
+        tvParticleCountValue = findViewById(R.id.tv_particle_count_value)
         sliderGlowSize = findViewById(R.id.slider_glow_size)
         tvGlowSizeValue = findViewById(R.id.tv_glow_size_value)
         sliderArcAmplitude = findViewById(R.id.slider_arc_amplitude)
@@ -275,6 +279,7 @@ class SettingsActivity : AppCompatActivity() {
         swHideDisc.isChecked = settings.hideDisc
         updateDiscControls()
         sliderParticleSize.value = settings.particleSize.toFloat()
+        sliderParticleCount.value = settings.particleCount.toFloat()
         sliderGlowSize.value = settings.glowSize.toFloat()
         sliderArcAmplitude.value = settings.arcAmplitude.toFloat()
         sliderArcBlur.value = settings.arcBlur.toFloat()
@@ -400,6 +405,7 @@ class SettingsActivity : AppCompatActivity() {
         tvOpacityValue.text = "${settings.barOpacity}%"
         tvCardOpacityValue.text = "${settings.cardOpacity}%"
         tvParticleSizeValue.text = "${settings.particleSize}"
+        tvParticleCountValue.text = "${settings.particleCount}"
         tvGlowSizeValue.text = "${settings.glowSize}"
         tvArcAmplitudeValue.text = "${settings.arcAmplitude}"
         tvArcBlurValue.text = "${settings.arcBlur}"
@@ -523,6 +529,13 @@ class SettingsActivity : AppCompatActivity() {
             settings = settings.copy(particleSize = value.roundToInt().coerceIn(0, 100))
             settings.save(this)
             tvParticleSizeValue.text = "${settings.particleSize}"
+        }
+
+        sliderParticleCount.addOnChangeListener { _, value, fromUser ->
+            if (!fromUser || updating) return@addOnChangeListener
+            settings = settings.copy(particleCount = value.roundToInt().coerceIn(10, 100))
+            settings.save(this)
+            tvParticleCountValue.text = "${settings.particleCount}"
         }
 
         sliderGlowSize.addOnChangeListener { _, value, fromUser ->

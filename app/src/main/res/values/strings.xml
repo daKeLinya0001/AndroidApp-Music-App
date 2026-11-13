@@ -87,6 +87,8 @@
     <string name="particles_enabled_hint">播放器卡片后方漂浮的光点与底部光晕，随低频脉动。</string>
     <string name="particle_fullscreen">全屏粒子特效</string>
     <string name="particle_fullscreen_hint">开启后主界面粒子也铺满整屏，与全屏模式保持一致。</string>
+    <string name="particle_count">粒子数量</string>
+    <string name="particle_count_warning">⚠ 数量越高越耗电、越容易发热；调到 100 时优先保证视觉效果，不再兼顾手机性能。</string>
     <string name="particle_size">粒子大小</string>
     <string name="glow_size">光晕大小</string>
     <string name="arc_amplitude">弧线震动幅度</string>

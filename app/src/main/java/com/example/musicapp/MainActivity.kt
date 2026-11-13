@@ -455,11 +455,13 @@ class MainActivity : AppCompatActivity() {
         particleView.particleColor = resolvedParticleColor()
         particleView.particleSize = settings.particleSize
         particleView.glowSize = settings.glowSize
+        particleView.particleCount = settings.particleCount
         particleView.provider = { engine.latestSpectrum }
 
         particleFullscreen.particleColor = resolvedParticleColor()
         particleFullscreen.particleSize = settings.particleSize
         particleFullscreen.glowSize = settings.glowSize
+        particleFullscreen.particleCount = settings.particleCount
         particleFullscreen.provider = { engine.latestSpectrum }
 
         // 全屏播放器里的同一套频谱与粒子
@@ -484,6 +486,7 @@ class MainActivity : AppCompatActivity() {
         exParticle.particleColor = resolvedParticleColor()
         exParticle.particleSize = settings.particleSize
         exParticle.glowSize = settings.glowSize
+        exParticle.particleCount = settings.particleCount
         exParticle.provider = { engine.latestSpectrum }
 
         spectrumLibrary.barColor = resolvedBarColor()

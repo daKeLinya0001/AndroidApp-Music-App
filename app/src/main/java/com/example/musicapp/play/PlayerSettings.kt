@@ -25,6 +25,8 @@ data class PlayerSettings(
     val hideDisc: Boolean = false,
     /** 粒子特效铺满整屏（主界面与全屏一致） */
     val particleFullscreen: Boolean = false,
+    /** 粒子数量 10–100 */
+    val particleCount: Int = 40,
     /** 唱片内圈图片路径，空 = 默认白色内圈 */
     val discLabelPath: String = "",
     /** 粒子与光晕特效 */
@@ -33,7 +35,7 @@ data class PlayerSettings(
     /** true = 粒子颜色跟随频谱柱颜色 */
     val particleFollowBar: Boolean = true,
     val particleColor: Int = 0,
-    /** 底部光晕大小，0–100 */
+    /** 底部光晕大小，0–150 */
     val glowSize: Int = 50,
     /** 全屏弧线的震动幅度，0–100 */
     val arcAmplitude: Int = 80,
@@ -68,6 +70,7 @@ data class PlayerSettings(
             .putString(KEY_DISC, discMode)
             .putBoolean(KEY_HIDE_DISC, hideDisc)
             .putBoolean(KEY_PARTICLE_FULLSCREEN, particleFullscreen)
+            .putInt(KEY_PARTICLE_COUNT, particleCount)
             .putString(KEY_DISC_LABEL, discLabelPath)
             .putBoolean(KEY_PARTICLES, particlesEnabled)
             .putInt(KEY_PARTICLE_SIZE, particleSize)
@@ -116,6 +119,7 @@ data class PlayerSettings(
         private const val KEY_DISC = "discMode"
         private const val KEY_HIDE_DISC = "hideDisc"
         private const val KEY_PARTICLE_FULLSCREEN = "particleFullscreen"
+        private const val KEY_PARTICLE_COUNT = "particleCount"
         private const val KEY_DISC_LABEL = "discLabelPath"
         private const val KEY_PARTICLES = "particlesEnabled"
         private const val KEY_PARTICLE_SIZE = "particleSize"
@@ -160,6 +164,7 @@ data class PlayerSettings(
                 discMode = if (disc == DISC_COLOR) DISC_COLOR else DISC_BLACK,
                 hideDisc = prefs.getBoolean(KEY_HIDE_DISC, false),
                 particleFullscreen = prefs.getBoolean(KEY_PARTICLE_FULLSCREEN, false),
+                particleCount = prefs.getInt(KEY_PARTICLE_COUNT, 40).coerceIn(10, 100),
                 discLabelPath = prefs.getString(KEY_DISC_LABEL, null) ?: "",
                 particlesEnabled = prefs.getBoolean(KEY_PARTICLES, true),
                 particleSize = prefs.getInt(KEY_PARTICLE_SIZE, 50).coerceIn(0, 100),

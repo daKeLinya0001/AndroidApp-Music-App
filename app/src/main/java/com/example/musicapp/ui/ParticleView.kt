@@ -73,7 +73,20 @@ class ParticleView @JvmOverloads constructor(
         var maxLife = 1f
     }
 
-    private val particles = Array(PARTICLE_COUNT) { Particle() }
+    /** 粒子数量 10–100：越大画面越丰富，也更耗电；100 时优先保证视觉效果 */
+    var particleCount: Int = DEFAULT_PARTICLE_COUNT
+        set(value) {
+            val clamped = value.coerceIn(MIN_PARTICLE_COUNT, MAX_PARTICLE_COUNT)
+            if (field == clamped) return
+            field = clamped
+            particles = Array(clamped) { Particle() }
+            seeded = false
+            glowShader = null
+            if (isPlaying) startLoop()
+            invalidate()
+        }
+
+    private var particles = Array(DEFAULT_PARTICLE_COUNT) { Particle() }
     private val corePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val haloPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val glowPaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -336,7 +349,9 @@ class ParticleView @JvmOverloads constructor(
     private fun dp(value: Float): Float = value * resources.displayMetrics.density
 
     private companion object {
-        const val PARTICLE_COUNT = 42
+        const val DEFAULT_PARTICLE_COUNT = 40
+        const val MIN_PARTICLE_COUNT = 10
+        const val MAX_PARTICLE_COUNT = 100
         const val DEFAULT_COLOR = 0xFF4F8CFF.toInt()
     }
 }
