@@ -98,6 +98,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var tvArcBlurValue: TextView
     private lateinit var sliderLyricOffset: Slider
     private lateinit var tvLyricOffsetValue: TextView
+    private lateinit var swLyrics: MaterialSwitch
     private lateinit var accentChips: LinearLayout
     private lateinit var textChips: LinearLayout
     private lateinit var btnAccentDefault: MaterialButton
@@ -263,6 +264,7 @@ class SettingsActivity : AppCompatActivity() {
         sliderArcBlur = findViewById(R.id.slider_arc_blur)
         sliderLyricOffset = findViewById(R.id.slider_lyric_offset)
         tvLyricOffsetValue = findViewById(R.id.tv_lyric_offset_value)
+        swLyrics = findViewById(R.id.sw_lyrics)
         tvArcBlurValue = findViewById(R.id.tv_arc_blur_value)
         accentChips = findViewById(R.id.accent_chips)
         textChips = findViewById(R.id.text_chips)
@@ -540,6 +542,8 @@ class SettingsActivity : AppCompatActivity() {
         tvArcBlurValue.text = "${settings.arcBlur}"
         sliderLyricOffset.value = (settings.lyricOffsetMs / 1000f).coerceIn(-5f, 5f)
         tvLyricOffsetValue.text = formatLyricOffset(settings.lyricOffsetMs)
+        swLyrics.isChecked = settings.lyricsEnabled
+        sliderLyricOffset.isEnabled = settings.lyricsEnabled
         tvBlurValue.text = "${settings.blurStrength}"
         tvColorValue.text = barColorLabel()
     }
@@ -688,6 +692,13 @@ class SettingsActivity : AppCompatActivity() {
             settings = settings.copy(arcBlur = value.roundToInt().coerceIn(0, 100))
             settings.save(this)
             tvArcBlurValue.text = "${settings.arcBlur}"
+        }
+
+        swLyrics.setOnCheckedChangeListener { _, checked ->
+            if (updating) return@setOnCheckedChangeListener
+            settings = settings.copy(lyricsEnabled = checked)
+            settings.save(this)
+            sliderLyricOffset.isEnabled = checked
         }
 
         sliderLyricOffset.addOnChangeListener { _, value, fromUser ->

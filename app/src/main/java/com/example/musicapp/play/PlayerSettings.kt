@@ -29,6 +29,8 @@ data class PlayerSettings(
     val particleCount: Int = 40,
     /** 歌词整体提前/延后，单位毫秒（-5000..5000） */
     val lyricOffsetMs: Int = 0,
+    /** 是否显示歌词（默认关闭，开启后才联网匹配） */
+    val lyricsEnabled: Boolean = false,
     /** 唱片内圈图片路径，空 = 默认白色内圈 */
     val discLabelPath: String = "",
     /** 粒子与光晕特效 */
@@ -74,6 +76,7 @@ data class PlayerSettings(
             .putBoolean(KEY_PARTICLE_FULLSCREEN, particleFullscreen)
             .putInt(KEY_PARTICLE_COUNT, particleCount)
             .putInt(KEY_LYRIC_OFFSET, lyricOffsetMs)
+            .putBoolean(KEY_LYRICS_ENABLED, lyricsEnabled)
             .putString(KEY_DISC_LABEL, discLabelPath)
             .putBoolean(KEY_PARTICLES, particlesEnabled)
             .putInt(KEY_PARTICLE_SIZE, particleSize)
@@ -124,6 +127,7 @@ data class PlayerSettings(
         private const val KEY_PARTICLE_FULLSCREEN = "particleFullscreen"
         private const val KEY_PARTICLE_COUNT = "particleCount"
         private const val KEY_LYRIC_OFFSET = "lyricOffsetMs"
+        private const val KEY_LYRICS_ENABLED = "lyricsEnabled"
         private const val KEY_DISC_LABEL = "discLabelPath"
         private const val KEY_PARTICLES = "particlesEnabled"
         private const val KEY_PARTICLE_SIZE = "particleSize"
@@ -170,6 +174,7 @@ data class PlayerSettings(
                 particleFullscreen = prefs.getBoolean(KEY_PARTICLE_FULLSCREEN, false),
                 particleCount = prefs.getInt(KEY_PARTICLE_COUNT, 40).coerceIn(10, 100),
                 lyricOffsetMs = prefs.getInt(KEY_LYRIC_OFFSET, 0).coerceIn(-5000, 5000),
+                lyricsEnabled = prefs.getBoolean(KEY_LYRICS_ENABLED, false),
                 discLabelPath = prefs.getString(KEY_DISC_LABEL, null) ?: "",
                 particlesEnabled = prefs.getBoolean(KEY_PARTICLES, true),
                 particleSize = prefs.getInt(KEY_PARTICLE_SIZE, 50).coerceIn(0, 100),

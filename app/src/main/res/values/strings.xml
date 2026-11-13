@@ -63,6 +63,9 @@
     <string name="lyrics_none">暂无歌词</string>
     <string name="lyric_offset">歌词延迟</string>
     <string name="lyric_offset_hint">歌词比人声慢了就往左调，快了往右调；不同版本时间轴不同，可用它手动对齐。</string>
+    <string name="lyrics_enabled">显示歌词</string>
+    <string name="lyrics_enabled_hint">全屏播放时在进度条上方显示同步歌词。</string>
+    <string name="lyrics_enabled_warning">此功能对于DJ音乐以及小众音乐可能会有误判，请谨慎使用</string>
     <string name="hide_disc_hint">开启后主界面与全屏都不显示唱片，只保留文字、进度与频谱。</string>
     <string name="disc_center">唱片内圈</string>
     <string name="disc_center_hint">默认为白色圆标；可上传图片替换（居中裁切）。</string>

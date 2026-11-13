@@ -122,6 +122,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var exSeek: SeekBar
     private lateinit var exLyricsCurrent: TextView
     private lateinit var exLyricsNext: TextView
+    private lateinit var exLyricsBlock: LinearLayout
     private lateinit var exTimeCurrent: TextView
     private lateinit var exTimeTotal: TextView
     private lateinit var exBtnRepeat: ImageButton
@@ -290,6 +291,7 @@ class MainActivity : AppCompatActivity() {
         exSpectrum = findViewById(R.id.ex_spectrum)
         exLyricsCurrent = findViewById(R.id.ex_lyrics_current)
         exLyricsNext = findViewById(R.id.ex_lyrics_next)
+        exLyricsBlock = findViewById(R.id.ex_lyrics_block)
         exParticle = findViewById(R.id.ex_particle)
         exDiscContainer = findViewById(R.id.ex_disc_container)
         exVisualizer = findViewById(R.id.ex_visualizer)
@@ -450,6 +452,8 @@ class MainActivity : AppCompatActivity() {
         discContainer.visibility = if (settings.hideDisc) View.GONE else View.VISIBLE
         exDiscContainer.visibility = if (settings.hideDisc) View.GONE else View.VISIBLE
         applyDiscLabel()
+        // 歌词默认关闭，只有开关打开时才显示并联网匹配
+        exLyricsBlock.visibility = if (settings.lyricsEnabled) View.VISIBLE else View.GONE
 
         spectrumPlayer.visibility = if (settings.spectrumEnabled) View.VISIBLE else View.GONE
         spectrumPlayer.barColor = resolvedBarColor()
@@ -836,6 +840,14 @@ class MainActivity : AppCompatActivity() {
 
     /** 切歌或开始播放时自动去网上匹配一次歌词，结果按曲目缓存 */
     private fun syncLyrics(track: Track?) {
+        if (!settings.lyricsEnabled) {
+            // 关闭时清空状态，重新打开后会重新匹配
+            lyricTrackId = ""
+            lyricLines = emptyList()
+            lyricIndex = -1
+            showLyricText("", "")
+            return
+        }
         val id = track?.id ?: ""
         if (id == lyricTrackId) return
         lyricTrackId = id
@@ -860,6 +872,8 @@ class MainActivity : AppCompatActivity() {
                 if (lyricLines.isEmpty()) {
                     showLyricText(getString(R.string.lyrics_none), "")
                 } else {
+                    // 强制刷新：否则当播放位置还停在第一句之前时（index 仍是 -1）会一直卡在「匹配中」
+                    lyricIndex = -2
                     updateLyricLine(engine.currentPositionMs.toLong())
                 }
             }
@@ -919,8 +933,14 @@ class MainActivity : AppCompatActivity() {
         if (index == lyricIndex) return
         val animate = lyricIndex >= 0
         lyricIndex = index
-        val current = lyricLines.getOrNull(index)?.text ?: ""
-        val next = lyricLines.getOrNull(index + 1)?.text ?: ""
+        // 还没到第一句时，先把第一句显示出来，下一行取第二句
+        val current = if (index >= 0) {
+            lyricLines.getOrNull(index)?.text.orEmpty()
+        } else {
+            lyricLines.firstOrNull()?.text.orEmpty()
+        }
+        val next = lyricLines.getOrNull(if (index >= 0) index + 1 else 1)?.text.orEmpty()
+        if (animate && exLyricsCurrent.text == current && exLyricsNext.text == next) return
         showLyricText(current, next, animate)
     }
 
