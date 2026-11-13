@@ -122,22 +122,33 @@ object ThemeColors {
                 }
                 is SeekBar -> {
                     view.progressTintList = ColorStateList.valueOf(accent)
-                    view.thumbTintList = ColorStateList.valueOf(accent)
+                    // 滑块用对比色，避免深色主题下白轨道 + 白圆点糊成一片
+                    view.thumbTintList = ColorStateList.valueOf(onAccent)
                 }
                 is Slider -> {
                     view.trackActiveTintList = ColorStateList.valueOf(accent)
-                    view.thumbTintList = ColorStateList.valueOf(accent)
+                    view.thumbTintList = ColorStateList.valueOf(onAccent)
                     view.haloTintList = ColorStateList.valueOf(withAlpha(accent, 0.18f))
                     view.tickActiveTintList = ColorStateList.valueOf(accent)
                 }
                 is MaterialSwitch -> {
-                    view.thumbTintList = ColorStateList.valueOf(Color.WHITE)
+                    // 轨道跟随强调色；滑块用「与强调色相反的对比色」，
+                    // 否则深色主题下强调色是白色时，轨道 + 滑块会糊成一整块纯白
+                    val checkedThumb = onAccent
+                    val uncheckedThumb = textTertiary
+                    view.thumbTintList = ColorStateList(
+                        arrayOf(
+                            intArrayOf(android.R.attr.state_checked),
+                            intArrayOf()
+                        ),
+                        intArrayOf(checkedThumb, uncheckedThumb)
+                    )
                     view.trackTintList = ColorStateList(
                         arrayOf(
                             intArrayOf(android.R.attr.state_checked),
                             intArrayOf()
                         ),
-                        intArrayOf(accent, withAlpha(defaultTextTertiary, 0.45f))
+                        intArrayOf(accent, withAlpha(defaultTextTertiary, 0.35f))
                     )
                 }
                 is RadioButton -> view.buttonTintList = ColorStateList.valueOf(accent)
