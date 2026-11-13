@@ -96,6 +96,10 @@ class SettingsActivity : AppCompatActivity() {
         uri?.let { saveWallpaper(it, "video") }
     }
 
+    private val pickDiscLabel = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+        uri?.let { saveDiscLabel(it) }
+    }
+
     private var pendingWallpaperPath = ""
     private var pendingWallpaperType = ""
 
@@ -351,6 +355,42 @@ class SettingsActivity : AppCompatActivity() {
         runCatching { File(path).delete() }
     }
 
+    // ------------------------------------------------------------ 唱片内圈
+
+    private fun saveDiscLabel(uri: Uri) {
+        // 用带时间戳的文件名，路径变化后主界面才会重新加载
+        val target = File(filesDir, "disc_label_${System.currentTimeMillis()}.jpg")
+        Thread {
+            val copied = runCatching {
+                contentResolver.openInputStream(uri)?.use { input ->
+                    target.outputStream().use { out -> input.copyTo(out) }
+                    true
+                } ?: false
+            }.getOrDefault(false)
+
+            runOnUiThread {
+                if (isFinishing || isDestroyed) {
+                    runCatching { target.delete() }
+                    return@runOnUiThread
+                }
+                if (!copied) {
+                    runCatching { target.delete() }
+                    Toast.makeText(this, R.string.wallpaper_failed, Toast.LENGTH_SHORT).show()
+                    return@runOnUiThread
+                }
+                deleteWallpaperFile(settings.discLabelPath)
+                settings = settings.copy(discLabelPath = target.absolutePath)
+                settings.save(this)
+            }
+        }.start()
+    }
+
+    private fun resetDiscLabel() {
+        deleteWallpaperFile(settings.discLabelPath)
+        settings = settings.copy(discLabelPath = "")
+        settings.save(this)
+    }
+
     private fun updateLabels() {
         tvMaxHeightValue.text = "${settings.maxBarHeight} px"
         tvSpeedValue.text = "${settings.barSpeed} / 100"
@@ -370,6 +410,10 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<MaterialButton>(R.id.btn_pick_image).setOnClickListener { pickImage.launch("image/*") }
         findViewById<MaterialButton>(R.id.btn_pick_video).setOnClickListener { pickVideo.launch("video/*") }
         findViewById<MaterialButton>(R.id.btn_clear_wallpaper).setOnClickListener { clearWallpaperSetting() }
+        findViewById<MaterialButton>(R.id.btn_disc_label_pick).setOnClickListener {
+            pickDiscLabel.launch("image/*")
+        }
+        findViewById<MaterialButton>(R.id.btn_disc_label_reset).setOnClickListener { resetDiscLabel() }
         btnBarDefault.setOnClickListener { resetBarColorToTheme() }
 
         swSpectrum.setOnCheckedChangeListener { _, checked ->

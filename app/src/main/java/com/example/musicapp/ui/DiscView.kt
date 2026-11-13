@@ -2,11 +2,14 @@ package com.example.musicapp.ui
 
 import android.animation.ValueAnimator
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.LinearGradient
 import android.graphics.Paint
 import android.graphics.Path
+import android.graphics.Rect
+import android.graphics.RectF
 import android.graphics.Shader
 import android.util.AttributeSet
 import android.view.View
@@ -56,10 +59,21 @@ class DiscView @JvmOverloads constructor(
             if (value) startBreathing() else stopBreathing()
         }
 
+    /** 唱片内圈图片；为空时画白色内圈 */
+    var labelBitmap: Bitmap? = null
+        set(value) {
+            if (field === value) return
+            field = value
+            invalidate()
+        }
+
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.STROKE }
     private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val highlightPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { isFilterBitmap = true }
+    private val labelSrc = Rect()
+    private val labelDst = RectF()
     private val clipPath = Path()
 
     private var breathPhase = 0f
@@ -136,6 +150,9 @@ class DiscView @JvmOverloads constructor(
             canvas.drawCircle(cx, cy, radius * (0.90f - index * 0.13f), strokePaint)
         }
 
+        // 内圈：默认白色标贴，也可用自定义图片覆盖，更接近真实黑胶
+        drawLabel(canvas, cx, cy, radius)
+
         // 外缘高光
         strokePaint.color = Color.argb(if (black) 96 else 70, 255, 255, 255)
         strokePaint.strokeWidth = dp(2f)
@@ -151,6 +168,33 @@ class DiscView @JvmOverloads constructor(
         strokePaint.color = Color.argb(if (black) 70 else 90, 255, 255, 255)
         strokePaint.strokeWidth = dp(1.4f)
         canvas.drawCircle(cx, cy, radius * 0.13f, strokePaint)
+    }
+
+    /** 唱片内圈标贴：默认白色圆形，设置图片后按居中裁切绘制 */
+    private fun drawLabel(canvas: Canvas, cx: Float, cy: Float, radius: Float) {
+        val labelRadius = radius * 0.40f
+        val bitmap = labelBitmap
+        if (bitmap != null && !bitmap.isRecycled) {
+            clipPath.reset()
+            clipPath.addCircle(cx, cy, labelRadius, Path.Direction.CW)
+            canvas.save()
+            canvas.clipPath(clipPath)
+            val size = min(bitmap.width, bitmap.height)
+            val left = (bitmap.width - size) / 2
+            val top = (bitmap.height - size) / 2
+            labelSrc.set(left, top, left + size, top + size)
+            labelDst.set(cx - labelRadius, cy - labelRadius, cx + labelRadius, cy + labelRadius)
+            canvas.drawBitmap(bitmap, labelSrc, labelDst, labelPaint)
+            canvas.restore()
+        } else {
+            dotPaint.color = Color.WHITE
+            canvas.drawCircle(cx, cy, labelRadius, dotPaint)
+        }
+
+        // 标贴边缘一圈极淡的暗色，避免纯白和黑胶之间过渡生硬
+        strokePaint.color = Color.argb(46, 0, 0, 0)
+        strokePaint.strokeWidth = dp(1f)
+        canvas.drawCircle(cx, cy, labelRadius, strokePaint)
     }
 
     private fun drawInnerHighlight(canvas: Canvas, cx: Float, cy: Float, radius: Float, alpha: Int) {

@@ -1,8 +1,6 @@
 package com.example.musicapp
 
 import android.Manifest
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
 import android.animation.ValueAnimator
 import android.content.Intent
 import android.content.res.ColorStateList
@@ -128,7 +126,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var btnCollapse: ImageButton
     private var isExpanded = false
     private var isExpandedSeeking = false
-    private var sheetAnimator: ValueAnimator? = null
     private var appliedAccent = 0
     private var appliedText = 0
     private lateinit var wallpaperLayer: View
@@ -213,8 +210,6 @@ class MainActivity : AppCompatActivity() {
         tickHandler.removeCallbacks(ticker)
         rotationAnimator?.cancel()
         rotationAnimator = null
-        sheetAnimator?.cancel()
-        sheetAnimator = null
         releaseWallpaperVideo()
         engine.removeListener(engineListener)
         super.onDestroy()
@@ -327,7 +322,10 @@ class MainActivity : AppCompatActivity() {
             interpolator = LinearInterpolator()
             repeatCount = ValueAnimator.INFINITE
             addUpdateListener { animation ->
-                discContainer.rotation = animation.animatedValue as Float
+                val rotation = animation.animatedValue as Float
+                discContainer.rotation = rotation
+                // 全屏的唱盘也要一起转，否则展开后唱片是静止的
+                exDiscContainer.rotation = rotation
             }
             start()
             pause()
@@ -430,6 +428,7 @@ class MainActivity : AppCompatActivity() {
         // 隐藏黑胶唱片：主界面与全屏同时隐藏唱盘容器
         discContainer.visibility = if (settings.hideDisc) View.GONE else View.VISIBLE
         exDiscContainer.visibility = if (settings.hideDisc) View.GONE else View.VISIBLE
+        applyDiscLabel()
 
         spectrumPlayer.visibility = if (settings.spectrumEnabled) View.VISIBLE else View.GONE
         spectrumPlayer.barColor = resolvedBarColor()
@@ -917,6 +916,37 @@ class MainActivity : AppCompatActivity() {
         )
     }
 
+    private var discLabelBitmap: Bitmap? = null
+    private var discLabelLoadedPath = ""
+
+    /** 唱片内圈图片：路径变化时才重新解码，避免每次 onResume 都读盘 */
+    private fun applyDiscLabel() {
+        val path = settings.discLabelPath
+        if (path == discLabelLoadedPath) return
+        val previous = discLabelBitmap
+        val bitmap = if (path.isNotBlank() && File(path).exists()) decodeBitmap(path, 512) else null
+        discLabelBitmap = bitmap
+        discLabelLoadedPath = path
+        discView.labelBitmap = bitmap
+        exDiscView.labelBitmap = bitmap
+        if (previous != null && previous !== bitmap && !previous.isRecycled) previous.recycle()
+    }
+
+    /** 按 2 的幂降采样解码，用于内圈这类小尺寸图片 */
+    private fun decodeBitmap(path: String, maxSize: Int): Bitmap? {
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        runCatching { BitmapFactory.decodeFile(path, bounds) }
+        var sample = 1
+        while (bounds.outWidth / (sample * 2) >= maxSize || bounds.outHeight / (sample * 2) >= maxSize) {
+            sample *= 2
+        }
+        val options = BitmapFactory.Options().apply {
+            inSampleSize = sample
+            inPreferredConfig = Bitmap.Config.ARGB_8888
+        }
+        return runCatching { BitmapFactory.decodeFile(path, options) }.getOrNull()
+    }
+
     /** 把强调色 / 文字颜色应用到整棵视图树（列表行是动态创建的，所以每次重建后都要再刷一次） */
     private fun applyThemeColors() {
         ThemeColors.apply(
@@ -977,22 +1007,32 @@ class MainActivity : AppCompatActivity() {
         applyExpandedState()
         applyPlaybackState()
 
-        val start = cardRectOnScreen()
-        val params = expandedSheet.layoutParams as FrameLayout.LayoutParams
-        params.width = start.width()
-        params.height = start.height()
-        params.leftMargin = start.left
-        params.topMargin = start.top
-        expandedSheet.layoutParams = params
-
-        expandedScrim.alpha = 0f
         expandedOverlay.visibility = View.VISIBLE
         // 全屏面板是半透明的，壁纸需要移到内容之上、面板之下才能透出来
         moveWallpaperForFullscreen(expanded = true)
+        expandedScrim.alpha = 0f
 
-        expandedOverlay.post {
-            val end = Rect(0, 0, expandedOverlay.width, expandedOverlay.height)
-            animateSheet(start, end, null)
+        // 用缩放 + 位移做过渡（GPU 层完成，不触发重新布局），比逐帧改 LayoutParams 顺滑得多
+        expandedSheet.alpha = 0f
+        expandedSheet.post {
+            val start = cardRectOnScreen()
+            val fullWidth = expandedSheet.width.coerceAtLeast(1).toFloat()
+            val fullHeight = expandedSheet.height.coerceAtLeast(1).toFloat()
+            expandedSheet.pivotX = 0f
+            expandedSheet.pivotY = 0f
+            expandedSheet.scaleX = start.width() / fullWidth
+            expandedSheet.scaleY = start.height() / fullHeight
+            expandedSheet.translationX = start.left.toFloat()
+            expandedSheet.translationY = start.top.toFloat()
+            expandedSheet.alpha = 1f
+            expandedSheet.animate()
+                .scaleX(1f)
+                .scaleY(1f)
+                .translationX(0f)
+                .translationY(0f)
+                .setDuration(TRANSITION_MS.toLong())
+                .setInterpolator(DecelerateInterpolator(1.4f))
+                .start()
             expandedScrim.animate().alpha(1f).setDuration(TRANSITION_MS.toLong()).start()
         }
     }
@@ -1001,21 +1041,34 @@ class MainActivity : AppCompatActivity() {
         if (!isExpanded) return
         isExpanded = false
         applyPlaybackState()
-        val params = expandedSheet.layoutParams as FrameLayout.LayoutParams
-        val from = Rect(
-            params.leftMargin,
-            params.topMargin,
-            params.leftMargin + params.width,
-            params.topMargin + params.height
-        )
-        val end = cardRectOnScreen()
         // 先把壁纸放回内容下方，收起动画过程中就能看到主界面
         moveWallpaperForFullscreen(expanded = false)
-        animateSheet(from, end) {
-            expandedOverlay.visibility = View.GONE
-            expandedScrim.alpha = 0f
-        }
+
+        val end = cardRectOnScreen()
+        val fullWidth = expandedSheet.width.coerceAtLeast(1).toFloat()
+        val fullHeight = expandedSheet.height.coerceAtLeast(1).toFloat()
+        expandedSheet.animate()
+            .scaleX(end.width() / fullWidth)
+            .scaleY(end.height() / fullHeight)
+            .translationX(end.left.toFloat())
+            .translationY(end.top.toFloat())
+            .setDuration(TRANSITION_MS.toLong())
+            .setInterpolator(DecelerateInterpolator(1.4f))
+            .withEndAction {
+                expandedOverlay.visibility = View.GONE
+                expandedScrim.alpha = 0f
+                resetSheetTransform()
+            }
+            .start()
         expandedScrim.animate().alpha(0f).setDuration(TRANSITION_MS.toLong()).start()
+    }
+
+    private fun resetSheetTransform() {
+        expandedSheet.animate().cancel()
+        expandedSheet.scaleX = 1f
+        expandedSheet.scaleY = 1f
+        expandedSheet.translationX = 0f
+        expandedSheet.translationY = 0f
     }
 
     private fun cardRectOnScreen(): Rect {
@@ -1028,33 +1081,7 @@ class MainActivity : AppCompatActivity() {
         return Rect(left, top, left + playerCard.width, top + playerCard.height)
     }
 
-    private fun animateSheet(from: Rect, to: Rect, onEnd: (() -> Unit)?) {
-        sheetAnimator?.cancel()
-        val params = expandedSheet.layoutParams as FrameLayout.LayoutParams
-        sheetAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
-            duration = TRANSITION_MS.toLong()
-            interpolator = DecelerateInterpolator(1.6f)
-            addUpdateListener { animation ->
-                val fraction = animation.animatedValue as Float
-                params.width = lerpInt(from.width(), to.width(), fraction)
-                params.height = lerpInt(from.height(), to.height(), fraction)
-                params.leftMargin = lerpInt(from.left, to.left, fraction)
-                params.topMargin = lerpInt(from.top, to.top, fraction)
-                expandedSheet.layoutParams = params
-            }
-            if (onEnd != null) {
-                addListener(object : AnimatorListenerAdapter() {
-                    override fun onAnimationEnd(animation: Animator) {
-                        onEnd()
-                    }
-                })
-            }
-            start()
-        }
-    }
 
-    private fun lerpInt(start: Int, end: Int, fraction: Float): Int =
-        (start + (end - start) * fraction).toInt()
 
     /** 全屏时把粒子/光晕的发射中心对齐到唱片圆心（唱片隐藏时用可视化区域中心） */
     private fun updateExpandedEffectOrigin() {
