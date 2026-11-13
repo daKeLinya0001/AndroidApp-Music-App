@@ -39,7 +39,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="true"
-        android:fillViewport="true"
+        android:fillViewport="false"
         android:scrollbars="none">
 
         <LinearLayout

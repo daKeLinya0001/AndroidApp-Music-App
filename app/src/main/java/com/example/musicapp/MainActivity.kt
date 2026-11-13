@@ -114,6 +114,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var exSpectrum: SpectrumView
     private lateinit var exParticle: ParticleView
     private lateinit var exDiscContainer: FrameLayout
+    private lateinit var exVisualizer: FrameLayout
     private lateinit var exTrackTitle: TextView
     private lateinit var exTrackSub: TextView
     private lateinit var exSeek: SeekBar
@@ -280,6 +281,7 @@ class MainActivity : AppCompatActivity() {
         exSpectrum = findViewById(R.id.ex_spectrum)
         exParticle = findViewById(R.id.ex_particle)
         exDiscContainer = findViewById(R.id.ex_disc_container)
+        exVisualizer = findViewById(R.id.ex_visualizer)
         exTrackTitle = findViewById(R.id.ex_track_title)
         exTrackSub = findViewById(R.id.ex_track_sub)
         exSeek = findViewById(R.id.ex_seek)
@@ -379,9 +381,10 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
-        // 点击唱片展开全屏播放器
+        // 点击唱片展开全屏播放器；隐藏唱片后改为点击播放器卡片空白处展开
         discContainer.contentDescription = getString(R.string.expand_player)
         discContainer.setOnClickListener { expandPlayer() }
+        playerCard.setOnClickListener { expandPlayer() }
 
         btnCollapse.setOnClickListener { collapsePlayer() }
         exBtnPlay.setOnClickListener {
@@ -424,6 +427,9 @@ class MainActivity : AppCompatActivity() {
         } else {
             DiscView.DiscStyle.BLACK
         }
+        // 隐藏黑胶唱片：主界面与全屏同时隐藏唱盘容器
+        discContainer.visibility = if (settings.hideDisc) View.GONE else View.VISIBLE
+        exDiscContainer.visibility = if (settings.hideDisc) View.GONE else View.VISIBLE
 
         spectrumPlayer.visibility = if (settings.spectrumEnabled) View.VISIBLE else View.GONE
         spectrumPlayer.barColor = resolvedBarColor()
@@ -450,6 +456,7 @@ class MainActivity : AppCompatActivity() {
         exSpectrum.radialInnerRadiusDp = 102f
         exSpectrum.barCount = 64
         exSpectrum.arcAmplitude = settings.arcAmplitude
+        exSpectrum.showRingDecoration = !settings.hideDisc
         exSpectrum.barColor = resolvedBarColor()
         exSpectrum.barOpacity = settings.barOpacity
         exSpectrum.maxBarHeightDp = settings.maxBarHeight
@@ -1049,16 +1056,19 @@ class MainActivity : AppCompatActivity() {
     private fun lerpInt(start: Int, end: Int, fraction: Float): Int =
         (start + (end - start) * fraction).toInt()
 
-    /** 全屏时把粒子/光晕的发射中心对齐到唱片圆心 */
+    /** 全屏时把粒子/光晕的发射中心对齐到唱片圆心（唱片隐藏时用可视化区域中心） */
     private fun updateExpandedEffectOrigin() {
-        if (expandedSheet.width == 0 || exDiscContainer.width == 0) return
+        if (expandedSheet.width == 0) return
+        val anchor = if (settings.hideDisc) exVisualizer else exDiscContainer
+        if (anchor.width == 0) return
         val sheetLocation = IntArray(2)
         expandedSheet.getLocationInWindow(sheetLocation)
-        val discLocation = IntArray(2)
-        exDiscContainer.getLocationInWindow(discLocation)
-        val centerX = discLocation[0] - sheetLocation[0] + exDiscContainer.width / 2f
-        val centerY = discLocation[1] - sheetLocation[1] + exDiscContainer.height / 2f
-        exParticle.setDiscOrigin(true, centerX, centerY, exDiscContainer.width / 2f)
+        val anchorLocation = IntArray(2)
+        anchor.getLocationInWindow(anchorLocation)
+        val centerX = anchorLocation[0] - sheetLocation[0] + anchor.width / 2f
+        val centerY = anchorLocation[1] - sheetLocation[1] + anchor.height / 2f
+        val radius = if (settings.hideDisc) anchor.width * 0.28f else anchor.width / 2f
+        exParticle.setDiscOrigin(true, centerX, centerY, radius)
     }
 
     private fun applyExpandedState() {

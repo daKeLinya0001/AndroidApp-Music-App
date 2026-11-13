@@ -107,6 +107,13 @@ class SpectrumView @JvmOverloads constructor(
             invalidate()
         }
 
+    /** 是否绘制弧线内部的填充与放射连接线；唱片隐藏时应关闭，否则会变成一块灰饼 */
+    var showRingDecoration: Boolean = true
+        set(value) {
+            field = value
+            invalidate()
+        }
+
     var isPlaying: Boolean = false
         set(value) {
             if (field == value) return
@@ -445,42 +452,44 @@ class SpectrumView @JvmOverloads constructor(
         }
         ringPath.close()
 
-        // 曲线内部半透明填充，颜色跟随频谱柱：靠近唱片略浓，靠近曲线边缘渐淡
-        val fillKey = outer * 1000f + barColor
-        if (radialFillShader == null || radialFillKey != fillKey) {
-            val red = Color.red(barColor)
-            val green = Color.green(barColor)
-            val blue = Color.blue(barColor)
-            radialFillShader = RadialGradient(
-                cx,
-                cy,
-                outer,
-                intArrayOf(
-                    Color.argb(130, red, green, blue),
-                    Color.argb(36, red, green, blue)
-                ),
-                floatArrayOf(0f, 1f),
-                Shader.TileMode.CLAMP
-            )
-            radialFillKey = fillKey
-        }
-        radialFillPaint.shader = radialFillShader
-        radialFillPaint.alpha = barOpacity * 255 / 100
-        canvas.drawPath(ringPath, radialFillPaint)
+        if (showRingDecoration) {
+            // 曲线内部半透明填充，颜色跟随频谱柱：靠近唱片略浓，靠近曲线边缘渐淡
+            val fillKey = outer * 1000f + barColor
+            if (radialFillShader == null || radialFillKey != fillKey) {
+                val red = Color.red(barColor)
+                val green = Color.green(barColor)
+                val blue = Color.blue(barColor)
+                radialFillShader = RadialGradient(
+                    cx,
+                    cy,
+                    outer,
+                    intArrayOf(
+                        Color.argb(130, red, green, blue),
+                        Color.argb(36, red, green, blue)
+                    ),
+                    floatArrayOf(0f, 1f),
+                    Shader.TileMode.CLAMP
+                )
+                radialFillKey = fillKey
+            }
+            radialFillPaint.shader = radialFillShader
+            radialFillPaint.alpha = barOpacity * 255 / 100
+            canvas.drawPath(ringPath, radialFillPaint)
 
-        // 从唱片边缘连到曲线的放射细线，让曲线看起来"长"在唱片上而不是飘在空中
-        connectorPaint.color = barColor
-        connectorPaint.strokeWidth = dp(1f)
-        for (index in 0 until count) {
-            val angle = -PI.toFloat() / 2f + index * stepAngle
-            val startX = cx + cos(angle) * (inner + dp(1.5f))
-            val startY = cy + sin(angle) * (inner + dp(1.5f))
-            val distance = hypot(ringX[index] - startX, ringY[index] - startY)
-            // 线越长越淡，避免外扩时出现生硬的色块
-            val alpha = (barOpacity * 0.32f * 255f / 100f * (1f - distance / (maxLength * 1.6f))
-                .coerceIn(0.25f, 1f)).toInt().coerceIn(0, 255)
-            connectorPaint.alpha = alpha
-            canvas.drawLine(startX, startY, ringX[index], ringY[index], connectorPaint)
+            // 从唱片边缘连到曲线的放射细线，让曲线看起来"长"在唱片上而不是飘在空中
+            connectorPaint.color = barColor
+            connectorPaint.strokeWidth = dp(1f)
+            for (index in 0 until count) {
+                val angle = -PI.toFloat() / 2f + index * stepAngle
+                val startX = cx + cos(angle) * (inner + dp(1.5f))
+                val startY = cy + sin(angle) * (inner + dp(1.5f))
+                val distance = hypot(ringX[index] - startX, ringY[index] - startY)
+                // 线越长越淡，避免外扩时出现生硬的色块
+                val alpha = (barOpacity * 0.32f * 255f / 100f * (1f - distance / (maxLength * 1.6f))
+                    .coerceIn(0.25f, 1f)).toInt().coerceIn(0, 255)
+                connectorPaint.alpha = alpha
+                canvas.drawLine(startX, startY, ringX[index], ringY[index], connectorPaint)
+            }
         }
 
         radialPaint.shader = radialShader

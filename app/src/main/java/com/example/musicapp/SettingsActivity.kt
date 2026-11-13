@@ -71,6 +71,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var presetsContainer: LinearLayout
     private lateinit var etCustomColor: EditText
     private lateinit var swParticles: MaterialSwitch
+    private lateinit var swHideDisc: MaterialSwitch
     private lateinit var sliderParticleSize: Slider
     private lateinit var tvParticleSizeValue: TextView
     private lateinit var sliderGlowSize: Slider
@@ -214,6 +215,7 @@ class SettingsActivity : AppCompatActivity() {
         presetsContainer = findViewById(R.id.presets_container)
         etCustomColor = findViewById(R.id.et_custom_color)
         swParticles = findViewById(R.id.sw_particles)
+        swHideDisc = findViewById(R.id.sw_hide_disc)
         sliderParticleSize = findViewById(R.id.slider_particle_size)
         tvParticleSizeValue = findViewById(R.id.tv_particle_size_value)
         sliderGlowSize = findViewById(R.id.slider_glow_size)
@@ -263,6 +265,8 @@ class SettingsActivity : AppCompatActivity() {
         sliderCardOpacity.value = settings.cardOpacity.toFloat()
         sliderBlur.value = settings.blurStrength.toFloat()
         swParticles.isChecked = settings.particlesEnabled
+        swHideDisc.isChecked = settings.hideDisc
+        updateDiscControls()
         sliderParticleSize.value = settings.particleSize.toFloat()
         sliderGlowSize.value = settings.glowSize.toFloat()
         sliderArcAmplitude.value = settings.arcAmplitude.toFloat()
@@ -412,6 +416,14 @@ class SettingsActivity : AppCompatActivity() {
             settings.save(this)
         }
 
+        swHideDisc.setOnCheckedChangeListener { _, checked ->
+            if (updating) return@setOnCheckedChangeListener
+            if (checked == settings.hideDisc) return@setOnCheckedChangeListener
+            settings = settings.copy(hideDisc = checked)
+            settings.save(this)
+            updateDiscControls()
+        }
+
         sliderMaxHeight.addOnChangeListener { _, value, fromUser ->
             if (!fromUser || updating) return@addOnChangeListener
             settings = settings.copy(maxBarHeight = value.roundToInt().coerceIn(0, 300))
@@ -517,6 +529,13 @@ class SettingsActivity : AppCompatActivity() {
             chip.setOnClickListener { applyColor(color) }
             presetsContainer.addView(chip)
         }
+    }
+
+    /** 隐藏唱片时，「唱片颜色」就不再有意义，置灰提示 */
+    private fun updateDiscControls() {
+        val enabled = !settings.hideDisc
+        rgDisc.isEnabled = enabled
+        rgDisc.alpha = if (enabled) 1f else 0.4f
     }
 
     /** 频谱柱颜色的展示文本：跟随主题时显示解析后的实际颜色 */

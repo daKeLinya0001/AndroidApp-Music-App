@@ -21,6 +21,8 @@ data class PlayerSettings(
     val themeMode: String = THEME_LIGHT,
     /** 唱片颜色：black（默认）/ color（跟随曲目渐变） */
     val discMode: String = DISC_BLACK,
+    /** 隐藏黑胶唱片（主界面与全屏都不再显示） */
+    val hideDisc: Boolean = false,
     /** 粒子与光晕特效 */
     val particlesEnabled: Boolean = true,
     val particleSize: Int = 50,
@@ -60,6 +62,7 @@ data class PlayerSettings(
             .putInt(KEY_BLUR, blurStrength)
             .putString(KEY_THEME, themeMode)
             .putString(KEY_DISC, discMode)
+            .putBoolean(KEY_HIDE_DISC, hideDisc)
             .putBoolean(KEY_PARTICLES, particlesEnabled)
             .putInt(KEY_PARTICLE_SIZE, particleSize)
             .putBoolean(KEY_PARTICLE_FOLLOW, particleFollowBar)
@@ -105,6 +108,7 @@ data class PlayerSettings(
         private const val KEY_BLUR = "blurStrength"
         private const val KEY_THEME = "themeMode"
         private const val KEY_DISC = "discMode"
+        private const val KEY_HIDE_DISC = "hideDisc"
         private const val KEY_PARTICLES = "particlesEnabled"
         private const val KEY_PARTICLE_SIZE = "particleSize"
         private const val KEY_PARTICLE_FOLLOW = "particleFollowBar"
@@ -146,6 +150,7 @@ data class PlayerSettings(
                 blurStrength = prefs.getInt(KEY_BLUR, 50).coerceIn(0, 100),
                 themeMode = if (theme == THEME_DARK || theme == THEME_SYSTEM) theme else THEME_LIGHT,
                 discMode = if (disc == DISC_COLOR) DISC_COLOR else DISC_BLACK,
+                hideDisc = prefs.getBoolean(KEY_HIDE_DISC, false),
                 particlesEnabled = prefs.getBoolean(KEY_PARTICLES, true),
                 particleSize = prefs.getInt(KEY_PARTICLE_SIZE, 50).coerceIn(0, 100),
                 particleFollowBar = prefs.getBoolean(KEY_PARTICLE_FOLLOW, true),
