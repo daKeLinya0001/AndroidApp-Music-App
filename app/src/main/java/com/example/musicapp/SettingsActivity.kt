@@ -950,8 +950,9 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun resetAllSettings() {
         val defaults = PlayerSettings()
-        // 重置也清掉壁纸文件
+        // 重置也清掉壁纸与唱片内圈图片，避免留下无人引用的文件
         deleteWallpaperFile(settings.wallpaperPath)
+        deleteWallpaperFile(settings.discLabelPath)
         defaults.save(this)
         settings = defaults
         updateWallpaperStatus()

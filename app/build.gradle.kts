@@ -1,10 +1,10 @@
-﻿import java.util.Properties
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.android.application)
 }
 
-// 绛惧悕閰嶇疆浠庢牴鐩綍鐨?keystore.properties 璇诲彇锛堣鏂囦欢涓?.jks 閮戒笉鎻愪氦鍒颁粨搴擄級
+// 签名配置从根目录的 keystore.properties 读取（该文件与 .jks 都不提交到仓库）
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) {
@@ -22,8 +22,8 @@ android {
         applicationId = "com.example.musicapp"
         minSdk = 24
         targetSdk = 37
-        versionCode = 13
-        versionName = "1.10"
+        versionCode = 14
+        versionName = "1.11"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -44,8 +44,8 @@ android {
             if (keystorePropertiesFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
             }
-            // 娉ㄦ剰锛欰GP 9 鐨?optimization{enable=true} 浼氭妸 kotlin 鏍囧噯搴撶殑绫诲仛璺ㄥ寘鍚堝苟锛?
-            // 杩愯鏃舵姏 IllegalAccessError锛坅ndroidx.startup 鍒濆鍖栧嵆宕╂簝锛夛紝鏁呬笉鍚敤銆?
+            // 注意：AGP 9 的 optimization { enable = true } 会把 Kotlin 标准库的类做跨包合并，
+            // 运行时抛 IllegalAccessError（androidx.startup 初始化即崩溃），因此不启用。
         }
     }
     compileOptions {
