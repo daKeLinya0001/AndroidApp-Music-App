@@ -149,6 +149,7 @@ class MainActivity : AppCompatActivity() {
     private var lyricLines: List<LyricLine> = emptyList()
     private var lyricIndex = -1
     private var lyricRequestToken = 0
+    private var appliedLyricOffset = Int.MIN_VALUE
 
     private val pickAudio = registerForActivityResult(
         ActivityResultContracts.OpenMultipleDocuments()
@@ -435,6 +436,11 @@ class MainActivity : AppCompatActivity() {
     // ------------------------------------------------------------ 设置
 
     private fun applySettings() {
+        // 歌词延迟变化时强制刷新当前行
+        if (appliedLyricOffset != settings.lyricOffsetMs) {
+            appliedLyricOffset = settings.lyricOffsetMs
+            lyricIndex = -2
+        }
         discView.style = if (settings.discMode == PlayerSettings.DISC_COLOR) {
             DiscView.DiscStyle.COLOR
         } else {
@@ -860,20 +866,62 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun showLyricText(current: String, next: String) {
-        exLyricsCurrent.text = current
-        exLyricsNext.text = next
-        exLyricsNext.visibility = if (next.isEmpty()) View.GONE else View.VISIBLE
+    private fun showLyricText(current: String, next: String, animate: Boolean = false) {
+        if (!animate) {
+            exLyricsCurrent.animate().cancel()
+            exLyricsNext.animate().cancel()
+            exLyricsCurrent.alpha = 1f
+            exLyricsCurrent.translationY = 0f
+            exLyricsNext.alpha = 1f
+            exLyricsNext.translationY = 0f
+            exLyricsCurrent.text = current
+            exLyricsNext.text = next
+            exLyricsNext.visibility = if (next.isEmpty()) View.GONE else View.VISIBLE
+            return
+        }
+
+        val shift = dp(10f)
+        // 当前行：上移淡出 → 换字 → 从下方淡入，形成滚动感
+        exLyricsCurrent.animate().cancel()
+        exLyricsCurrent.animate()
+            .alpha(0f)
+            .translationY(-shift)
+            .setDuration(110L)
+            .withEndAction {
+                exLyricsCurrent.text = current
+                exLyricsCurrent.translationY = shift
+                exLyricsCurrent.animate()
+                    .alpha(1f)
+                    .translationY(0f)
+                    .setDuration(220L)
+                    .setInterpolator(DecelerateInterpolator(1.6f))
+                    .start()
+            }
+            .start()
+
+        // 下一行只做淡入淡出，避免抢视线
+        exLyricsNext.animate().cancel()
+        exLyricsNext.animate()
+            .alpha(0f)
+            .setDuration(110L)
+            .withEndAction {
+                exLyricsNext.text = next
+                exLyricsNext.visibility = if (next.isEmpty()) View.GONE else View.VISIBLE
+                exLyricsNext.animate().alpha(1f).setDuration(200L).start()
+            }
+            .start()
     }
 
     private fun updateLyricLine(positionMs: Long) {
         if (lyricLines.isEmpty()) return
-        val index = lyricLines.indexOfLast { it.timeMs <= positionMs + 100 }
+        val adjusted = positionMs + settings.lyricOffsetMs
+        val index = lyricLines.indexOfLast { it.timeMs <= adjusted + 100 }
         if (index == lyricIndex) return
+        val animate = lyricIndex >= 0
         lyricIndex = index
         val current = lyricLines.getOrNull(index)?.text ?: ""
         val next = lyricLines.getOrNull(index + 1)?.text ?: ""
-        showLyricText(current, next)
+        showLyricText(current, next, animate)
     }
 
     private fun updateProgress() {

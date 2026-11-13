@@ -27,6 +27,8 @@ data class PlayerSettings(
     val particleFullscreen: Boolean = false,
     /** 粒子数量 10–100 */
     val particleCount: Int = 40,
+    /** 歌词整体提前/延后，单位毫秒（-5000..5000） */
+    val lyricOffsetMs: Int = 0,
     /** 唱片内圈图片路径，空 = 默认白色内圈 */
     val discLabelPath: String = "",
     /** 粒子与光晕特效 */
@@ -71,6 +73,7 @@ data class PlayerSettings(
             .putBoolean(KEY_HIDE_DISC, hideDisc)
             .putBoolean(KEY_PARTICLE_FULLSCREEN, particleFullscreen)
             .putInt(KEY_PARTICLE_COUNT, particleCount)
+            .putInt(KEY_LYRIC_OFFSET, lyricOffsetMs)
             .putString(KEY_DISC_LABEL, discLabelPath)
             .putBoolean(KEY_PARTICLES, particlesEnabled)
             .putInt(KEY_PARTICLE_SIZE, particleSize)
@@ -120,6 +123,7 @@ data class PlayerSettings(
         private const val KEY_HIDE_DISC = "hideDisc"
         private const val KEY_PARTICLE_FULLSCREEN = "particleFullscreen"
         private const val KEY_PARTICLE_COUNT = "particleCount"
+        private const val KEY_LYRIC_OFFSET = "lyricOffsetMs"
         private const val KEY_DISC_LABEL = "discLabelPath"
         private const val KEY_PARTICLES = "particlesEnabled"
         private const val KEY_PARTICLE_SIZE = "particleSize"
@@ -165,6 +169,7 @@ data class PlayerSettings(
                 hideDisc = prefs.getBoolean(KEY_HIDE_DISC, false),
                 particleFullscreen = prefs.getBoolean(KEY_PARTICLE_FULLSCREEN, false),
                 particleCount = prefs.getInt(KEY_PARTICLE_COUNT, 40).coerceIn(10, 100),
+                lyricOffsetMs = prefs.getInt(KEY_LYRIC_OFFSET, 0).coerceIn(-5000, 5000),
                 discLabelPath = prefs.getString(KEY_DISC_LABEL, null) ?: "",
                 particlesEnabled = prefs.getBoolean(KEY_PARTICLES, true),
                 particleSize = prefs.getInt(KEY_PARTICLE_SIZE, 50).coerceIn(0, 100),

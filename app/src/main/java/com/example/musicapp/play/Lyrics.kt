@@ -7,6 +7,7 @@ import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
 import java.net.URLEncoder
+import kotlin.math.abs
 
 /** 一行同步歌词；[timeMs] 为该行开始时间 */
 data class LyricLine(val timeMs: Long, val text: String)
@@ -43,8 +44,9 @@ object LrcParser {
 /**
  * 歌词抓取：优先读本地缓存，其次依次尝试网易云、QQ 音乐、酷狗的公开接口。
  *
- * 三个接口都是各家网页端在用的搜索 + 歌词下载接口，不保证长期可用；
- * 任何一步失败都会继续尝试下一家，全部失败则返回 null（界面显示「暂无歌词」）。
+ * 同一首歌往往有多个版本（原版 / 翻唱 / remix），它们的歌词时间轴并不一样，
+ * 所以每家都要在搜索结果里按「歌名匹配度 + 时长接近度」打分，挑最像的那一条，
+ * 而不是无脑取第一条，否则就会出现「歌词对不上、越放越偏」。
  */
 class LyricsRepository(context: Context) {
 
@@ -62,15 +64,35 @@ class LyricsRepository(context: Context) {
             runCatching { cache.delete() }
         }
 
-        val raw = fromNetease(keyword)
-            ?: fromQQMusic(keyword)
-            ?: fromKugou(keyword)
+        val raw = fromNetease(keyword, durationMs)
+            ?: fromQQMusic(keyword, durationMs)
+            ?: fromKugou(keyword, durationMs)
             ?: return null
 
         val parsed = LrcParser.parse(raw)
         if (parsed.isEmpty()) return null
         runCatching { cache.writeText(raw) }
         return parsed
+    }
+
+    /**
+     * 候选打分：歌名越接近、时长越接近，得分越高。
+     * 时长完全对不上（超过 20 秒）基本可以判定不是同一个版本。
+     */
+    private fun score(title: String, candidateMs: Long, keyword: String, targetMs: Long): Float {
+        val candidate = normalize(title).lowercase()
+        val query = keyword.lowercase()
+        val nameScore = when {
+            candidate == query -> 1f
+            candidate.contains(query) || query.contains(candidate) -> 0.85f
+            else -> 0.25f
+        }
+        val durationScore = if (candidateMs > 0 && targetMs > 0) {
+            (1f - abs(candidateMs - targetMs) / 20_000f).coerceIn(0f, 1f)
+        } else {
+            0.4f
+        }
+        return nameScore * 0.55f + durationScore * 0.45f
     }
 
     // ------------------------------------------------------------ 缓存
@@ -92,58 +114,103 @@ class LyricsRepository(context: Context) {
 
     // ------------------------------------------------------------ 网易云
 
-    private fun fromNetease(keyword: String): String? = runCatching {
+    private fun fromNetease(keyword: String, targetMs: Long): String? = runCatching {
         val searchUrl =
-            "https://music.163.com/api/search/get/web?csrf_token=&s=${encode(keyword)}&type=1&offset=0&total=true&limit=5"
-        val search = JSONObject(get(searchUrl, "https://music.163.com/"))
+            "https://music.163.com/api/search/get/web?csrf_token=&s=${encode(keyword)}&type=1&offset=0&total=true&limit=10"
+        val search = JSONObject(get(searchUrl, REF_NETEASE))
         val songs = search.optJSONObject("result")?.optJSONArray("songs") ?: return null
-        if (songs.length() == 0) return null
-        val id = songs.optJSONObject(0)?.optLong("id") ?: return null
 
-        val lyricUrl = "https://music.163.com/api/song/lyric?id=$id&lv=-1&kv=-1&tv=-1"
-        val lyric = JSONObject(get(lyricUrl, "https://music.163.com/"))
+        var bestId = 0L
+        var bestScore = 0f
+        for (index in 0 until songs.length()) {
+            val song = songs.optJSONObject(index) ?: continue
+            val id = song.optLong("id")
+            if (id == 0L) continue
+            val score = score(song.optString("name"), song.optLong("duration", 0), keyword, targetMs)
+            if (score > bestScore) {
+                bestScore = score
+                bestId = id
+            }
+        }
+        if (bestId == 0L) return null
+
+        val lyricUrl = "https://music.163.com/api/song/lyric?id=$bestId&lv=-1&kv=-1&tv=-1"
+        val lyric = JSONObject(get(lyricUrl, REF_NETEASE))
         lyric.optJSONObject("lrc")?.optString("lyric")?.takeIf { it.isNotBlank() }
     }.getOrNull()
 
     // ------------------------------------------------------------ QQ 音乐
 
-    private fun fromQQMusic(keyword: String): String? = runCatching {
+    private fun fromQQMusic(keyword: String, targetMs: Long): String? = runCatching {
         val searchUrl = "https://c.y.qq.com/soso/fcgi-bin/client_search_cp" +
             "?ct=24&qqmusic_ver=1298&new_json=1&remoteplace=txt.yqq.song&searchid=0&t=0" +
-            "&aggr=1&cr=1&catZhida=1&lossless=0&flag_qc=0&p=1&n=5&w=${encode(keyword)}&format=json"
-        val search = JSONObject(get(searchUrl, "https://y.qq.com/"))
+            "&aggr=1&cr=1&catZhida=1&lossless=0&flag_qc=0&p=1&n=10&w=${encode(keyword)}&format=json"
+        val search = JSONObject(get(searchUrl, REF_QQ))
         val list = search.optJSONObject("data")
             ?.optJSONObject("song")
             ?.optJSONArray("list") ?: return null
-        val song = list.optJSONObject(0) ?: return null
-        val mid = song.optString("mid").ifBlank { song.optString("songmid") }
-        if (mid.isBlank()) return null
+
+        var bestMid = ""
+        var bestScore = 0f
+        for (index in 0 until list.length()) {
+            val song = list.optJSONObject(index) ?: continue
+            val mid = song.optString("mid").ifBlank { song.optString("songmid") }
+            if (mid.isBlank()) continue
+            val title = song.optString("title").ifBlank { song.optString("songname") }
+            val durationMs = song.optLong("interval", 0) * 1000
+            val score = score(title, durationMs, keyword, targetMs)
+            if (score > bestScore) {
+                bestScore = score
+                bestMid = mid
+            }
+        }
+        if (bestMid.isBlank()) return null
 
         val lyricUrl = "https://c.y.qq.com/lyric/fcgi-bin/fcg_query_lyric_new.fcg" +
-            "?songmid=$mid&format=json&nobase64=1"
-        val body = get(lyricUrl, "https://y.qq.com/")
-        val json = JSONObject(body.substring(body.indexOf('{'), body.lastIndexOf('}') + 1))
-        val lyric = json.optString("lyric")
-        if (lyric.isNotBlank() && lyric.contains('[')) return lyric
+            "?songmid=$bestMid&format=json&nobase64=1"
+        val body = get(lyricUrl, REF_QQ)
+        val start = body.indexOf('{')
+        val end = body.lastIndexOf('}')
+        if (start < 0 || end <= start) return null
+        val lyric = JSONObject(body.substring(start, end + 1)).optString("lyric")
+        if (lyric.contains('[')) return lyric
         // 部分情况仍返回 base64
         decodeBase64(lyric)?.takeIf { it.contains('[') }
     }.getOrNull()
 
     // ------------------------------------------------------------ 酷狗
 
-    private fun fromKugou(keyword: String): String? = runCatching {
+    private fun fromKugou(keyword: String, targetMs: Long): String? = runCatching {
         val searchUrl = "https://mobilecdn.kugou.com/api/v3/search/song" +
-            "?format=json&keyword=${encode(keyword)}&page=1&pagesize=5&showtype=1"
-        val search = JSONObject(get(searchUrl, "https://www.kugou.com/"))
+            "?format=json&keyword=${encode(keyword)}&page=1&pagesize=10&showtype=1"
+        val search = JSONObject(get(searchUrl, REF_KUGOU))
         val info = search.optJSONObject("data")?.optJSONArray("info") ?: return null
-        val song = info.optJSONObject(0) ?: return null
-        val hash = song.optString("hash")
-        val duration = song.optInt("duration", 0)
-        if (hash.isBlank()) return null
+
+        var bestHash = ""
+        var bestDuration = 0
+        var bestScore = 0f
+        for (index in 0 until info.length()) {
+            val song = info.optJSONObject(index) ?: continue
+            val hash = song.optString("hash")
+            if (hash.isBlank()) continue
+            val durationSeconds = song.optInt("duration", 0)
+            val score = score(
+                song.optString("songname"),
+                durationSeconds * 1000L,
+                keyword,
+                targetMs
+            )
+            if (score > bestScore) {
+                bestScore = score
+                bestHash = hash
+                bestDuration = durationSeconds
+            }
+        }
+        if (bestHash.isBlank()) return null
 
         val krcUrl = "https://krcs.kugou.com/search?ver=1&man=yes&client=mobi" +
-            "&keyword=&duration=$duration&hash=$hash"
-        val candidates = JSONObject(get(krcUrl, "https://www.kugou.com/"))
+            "&keyword=&duration=$bestDuration&hash=$bestHash"
+        val candidates = JSONObject(get(krcUrl, REF_KUGOU))
             .optJSONArray("candidates") ?: return null
         val candidate = candidates.optJSONObject(0) ?: return null
         val id = candidate.optString("id")
@@ -152,7 +219,7 @@ class LyricsRepository(context: Context) {
 
         val downloadUrl = "https://lyrics.kugou.com/download" +
             "?ver=1&client=pc&id=$id&accesskey=$accessKey&fmt=lrc&charset=utf8"
-        val body = JSONObject(get(downloadUrl, "https://www.kugou.com/"))
+        val body = JSONObject(get(downloadUrl, REF_KUGOU))
         decodeBase64(body.optString("content"))?.takeIf { it.contains('[') }
     }.getOrNull()
 
@@ -188,5 +255,11 @@ class LyricsRepository(context: Context) {
         } finally {
             runCatching { connection.disconnect() }
         }
+    }
+
+    private companion object {
+        const val REF_NETEASE = "https://music.163.com/"
+        const val REF_QQ = "https://y.qq.com/"
+        const val REF_KUGOU = "https://www.kugou.com/"
     }
 }

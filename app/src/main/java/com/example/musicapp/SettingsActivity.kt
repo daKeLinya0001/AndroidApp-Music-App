@@ -96,6 +96,8 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var tvArcAmplitudeValue: TextView
     private lateinit var sliderArcBlur: Slider
     private lateinit var tvArcBlurValue: TextView
+    private lateinit var sliderLyricOffset: Slider
+    private lateinit var tvLyricOffsetValue: TextView
     private lateinit var accentChips: LinearLayout
     private lateinit var textChips: LinearLayout
     private lateinit var btnAccentDefault: MaterialButton
@@ -259,6 +261,8 @@ class SettingsActivity : AppCompatActivity() {
         sliderArcAmplitude = findViewById(R.id.slider_arc_amplitude)
         tvArcAmplitudeValue = findViewById(R.id.tv_arc_amplitude_value)
         sliderArcBlur = findViewById(R.id.slider_arc_blur)
+        sliderLyricOffset = findViewById(R.id.slider_lyric_offset)
+        tvLyricOffsetValue = findViewById(R.id.tv_lyric_offset_value)
         tvArcBlurValue = findViewById(R.id.tv_arc_blur_value)
         accentChips = findViewById(R.id.accent_chips)
         textChips = findViewById(R.id.text_chips)
@@ -277,6 +281,15 @@ class SettingsActivity : AppCompatActivity() {
             val bars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             scroll.setPadding(0, dp(26f).toInt() + bars.top, 0, dp(32f).toInt() + bars.bottom)
             insets
+        }
+    }
+
+    private fun formatLyricOffset(ms: Int): String {
+        val seconds = ms / 1000f
+        return when {
+            seconds > 0.01f -> String.format(Locale.US, "+%.1fs", seconds)
+            seconds < -0.01f -> String.format(Locale.US, "%.1fs", seconds)
+            else -> "0.0s"
         }
     }
 
@@ -525,6 +538,8 @@ class SettingsActivity : AppCompatActivity() {
         tvGlowSizeValue.text = "${settings.glowSize}"
         tvArcAmplitudeValue.text = "${settings.arcAmplitude}"
         tvArcBlurValue.text = "${settings.arcBlur}"
+        sliderLyricOffset.value = (settings.lyricOffsetMs / 1000f).coerceIn(-5f, 5f)
+        tvLyricOffsetValue.text = formatLyricOffset(settings.lyricOffsetMs)
         tvBlurValue.text = "${settings.blurStrength}"
         tvColorValue.text = barColorLabel()
     }
@@ -673,6 +688,14 @@ class SettingsActivity : AppCompatActivity() {
             settings = settings.copy(arcBlur = value.roundToInt().coerceIn(0, 100))
             settings.save(this)
             tvArcBlurValue.text = "${settings.arcBlur}"
+        }
+
+        sliderLyricOffset.addOnChangeListener { _, value, fromUser ->
+            if (!fromUser || updating) return@addOnChangeListener
+            val offsetMs = (value * 1000f).roundToInt().coerceIn(-5000, 5000)
+            settings = settings.copy(lyricOffsetMs = offsetMs)
+            settings.save(this)
+            tvLyricOffsetValue.text = formatLyricOffset(offsetMs)
         }
 
         rgParticleColor.setOnCheckedChangeListener { _, checkedId ->
