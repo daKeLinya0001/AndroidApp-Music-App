@@ -1,4 +1,4 @@
-# MusicApp · 本地音乐播放器
+# Endless Music · 本地音乐播放器
 
 一个纯本地的 Android 音乐播放器，界面与交互移植自 DSH 桌面端「音乐播放器」插件。
 使用 Kotlin + 传统 View 体系（无 Jetpack Compose），不联网、不上传任何数据。
