@@ -43,6 +43,9 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.SeekBar
 import android.widget.TextView
+import android.content.SharedPreferences
+import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import java.io.File
 import kotlin.math.max
@@ -162,6 +165,7 @@ class MainActivity : AppCompatActivity() {
     private var rotationAnimator: ValueAnimator? = null
     private var launchOverlay: View? = null
     private var launchAnimator: ValueAnimator? = null
+    private var welcomeOverlay: View? = null
 
     private val lyricsRepository by lazy { LyricsRepository(this) }
     private var lyricTrackId = ""
@@ -210,6 +214,10 @@ class MainActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
+                if (welcomeOverlay != null) {
+                    // 欢迎页必须填完用户名才能离开
+                    return
+                }
                 if (launchOverlay != null) {
                     // 启动动画期间按返回键：只跳过动画，不退出应用
                     finishLaunchAnimation()
@@ -224,6 +232,7 @@ class MainActivity : AppCompatActivity() {
 
         // 启动动画只在冷启动（进程重建）时播放，转屏/换主题不会重复
         maybeShowLaunchAnimation(savedInstanceState)
+        if (launchOverlay == null) maybeShowWelcome()
     }
 
     /** 启动动画期间由 Activity 统一拦截点击：命中浮层的空白处也一定能跳过 */
@@ -480,6 +489,78 @@ class MainActivity : AppCompatActivity() {
 
     // ------------------------------------------------------------ 设置
 
+    // ------------------------------------------------------------ 首次启动欢迎页
+
+    /** 首次安装（或卸载重装）后展示一次：必须填写用户名才能进入主界面 */
+    private fun maybeShowWelcome() {
+        if (welcomeOverlay != null || isFinishing) return
+        val prefs = getSharedPreferences(WELCOME_PREFS, MODE_PRIVATE)
+        if (prefs.getBoolean(KEY_WELCOME_DONE, false)) return
+
+        val container = findViewById<ViewGroup>(android.R.id.content) ?: return
+        val overlay = layoutInflater.inflate(R.layout.view_welcome, container, false)
+        val input = overlay.findViewById<EditText>(R.id.welcome_input)
+        val error = overlay.findViewById<TextView>(R.id.welcome_error)
+        val confirm = overlay.findViewById<View>(R.id.welcome_confirm)
+
+        confirm.setOnClickListener { submitWelcome(input, error, prefs) }
+        input.setOnEditorActionListener { _, actionId, _ ->
+            if (actionId == EditorInfo.IME_ACTION_DONE) {
+                submitWelcome(input, error, prefs)
+                true
+            } else {
+                false
+            }
+        }
+
+        container.addView(overlay)
+        welcomeOverlay = overlay
+        // 抢走焦点：否则底层按钮仍是焦点态，键入的字符会落到主界面上
+        overlay.isFocusableInTouchMode = true
+        overlay.requestFocus()
+        input.requestFocus()
+        overlay.alpha = 0f
+        overlay.animate().alpha(1f).setDuration(220L).start()
+    }
+
+    private fun submitWelcome(input: EditText, error: TextView, prefs: SharedPreferences) {
+        val name = input.text.toString()
+        when {
+            name.isEmpty() -> {
+                showWelcomeError(error, getString(R.string.welcome_error_empty))
+                return
+            }
+            name.any { it.isWhitespace() } -> {
+                showWelcomeError(error, getString(R.string.welcome_error_space))
+                return
+            }
+        }
+
+        prefs.edit()
+            .putString(KEY_USERNAME, name)
+            .putBoolean(KEY_WELCOME_DONE, true)
+            .apply()
+
+        hideKeyboard()
+        val overlay = welcomeOverlay ?: return
+        overlay.animate().alpha(0f).setDuration(200L).withEndAction {
+            (overlay.parent as? ViewGroup)?.removeView(overlay)
+            welcomeOverlay = null
+        }.start()
+    }
+
+    private fun showWelcomeError(error: TextView, message: String) {
+        error.text = message
+        error.visibility = View.VISIBLE
+        error.alpha = 0f
+        error.animate().alpha(1f).setDuration(120L).start()
+    }
+
+    private fun hideKeyboard() {
+        val imm = getSystemService(InputMethodManager::class.java) ?: return
+        imm.hideSoftInputFromWindow(window.decorView.windowToken, 0)
+    }
+
     // ------------------------------------------------------------ 启动动画
 
     /**
@@ -563,6 +644,7 @@ class MainActivity : AppCompatActivity() {
         launchAnimator = null
         launchOverlay?.let { view -> (view.parent as? ViewGroup)?.removeView(view) }
         launchOverlay = null
+        maybeShowWelcome()
     }
 
     private fun easeOutCubic(x: Float): Float {
@@ -1639,5 +1721,10 @@ class MainActivity : AppCompatActivity() {
 
         /** 冷启动动画时长（毫秒） */
         const val LAUNCH_ANIMATION_MS = 2000L
+
+        /** 欢迎页只出现一次，卸载重装后才会再次出现 */
+        const val WELCOME_PREFS = "welcome"
+        const val KEY_WELCOME_DONE = "done"
+        const val KEY_USERNAME = "username"
     }
 }
