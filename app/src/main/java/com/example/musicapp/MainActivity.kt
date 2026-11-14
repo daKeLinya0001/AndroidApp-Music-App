@@ -16,6 +16,7 @@ import android.graphics.Shader
 import android.graphics.SurfaceTexture
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.GradientDrawable
+import android.media.MediaMetadataRetriever
 import android.media.MediaPlayer
 import android.net.Uri
 import android.os.Build
@@ -144,8 +145,15 @@ class MainActivity : AppCompatActivity() {
     private var wallpaperVideoPath = ""
     /** 已设置视频但 TextureView 的 Surface 还没就绪，等 onSurfaceTextureAvailable 再启动 */
     private var wallpaperVideoPending = false
+    /** 复用同一个 Surface 与播放器：重复换视频时，旧播放器 release 会把新 Surface detach 掉，画面就没了 */
+    private var wallpaperSurface: Surface? = null
+    private var wallpaperSurfaceTexture: SurfaceTexture? = null
+    /** 视频实际显示尺寸（已按旋转元数据换算），用于等比铺满而不是被压扁 */
+    private var videoAspectWidth = 0
+    private var videoAspectHeight = 0
+    private var wallpaperVideoRetried = false
     private val videoLayoutListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-        wallpaperPlayer?.let { runCatching { applyVideoTransform(it.videoWidth, it.videoHeight) } }
+        runCatching { applyVideoTransform() }
     }
 
     private val tickHandler = Handler(Looper.getMainLooper())
@@ -277,18 +285,20 @@ class MainActivity : AppCompatActivity() {
         wallpaperVideo.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
             override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
                 if (settings.wallpaperType == "video" && settings.wallpaperPath.isNotBlank()) {
-                    // 新的 Surface：先清掉旧的挂起状态，再重新创建播放器
+                    // 新的 SurfaceTexture：旧的 Surface 必须一起释放，否则会拿到失效的 Surface
                     releaseWallpaperVideo()
+                    releaseWallpaperSurface()
                     startWallpaperVideo(settings.wallpaperPath)
                 }
             }
 
             override fun onSurfaceTextureSizeChanged(surface: SurfaceTexture, width: Int, height: Int) {
-                wallpaperPlayer?.let { applyVideoTransform(it.videoWidth, it.videoHeight) }
+                runCatching { applyVideoTransform() }
             }
 
             override fun onSurfaceTextureDestroyed(surface: SurfaceTexture): Boolean {
                 releaseWallpaperVideo()
+                releaseWallpaperSurface()
                 return true
             }
 
@@ -599,6 +609,7 @@ class MainActivity : AppCompatActivity() {
             wallpaperImage.setImageDrawable(null)
             wallpaperImage.visibility = View.GONE
             wallpaperVideo.visibility = View.VISIBLE
+            wallpaperVideoRetried = false
             // 视频解不开时退回默认背景，避免留下一块黑屏
             if (!startWallpaperVideo(path)) {
                 wallpaperVideo.visibility = View.GONE
@@ -627,43 +638,83 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun startWallpaperVideo(path: String): Boolean {
-        if (wallpaperPlayer != null && wallpaperVideoPath == path) return true
+        if (wallpaperPlayer != null && wallpaperVideoPath == path && !wallpaperVideoPending) return true
         if (wallpaperVideoPending && wallpaperVideoPath == path) return true
-        releaseWallpaperVideo()
 
-        // TextureView 的 Surface 是异步创建的：还没就绪时先记下来，
-        // 等 onSurfaceTextureAvailable 回调再真正开始播放
-        val texture = wallpaperVideo.surfaceTexture ?: run {
-            wallpaperVideoPath = path
-            wallpaperVideoPending = true
-            return true
+        // 无论换源还是首次播放，都先把旧解码器和 Surface 彻底释放。
+        // 连续换视频时直接复用 SurfaceTexture，会让新解码器拿到还没解绑的 Surface，
+        // 表现为 MediaPlayer 报 -38 然后把壁纸层隐藏（这就是「多次上传后消失」）。
+        releaseWallpaperVideo()
+        releaseWallpaperSurface()
+
+        wallpaperVideoPath = path
+        wallpaperVideoPending = true
+        wallpaperVideo.visibility = View.VISIBLE
+
+        // 延迟几帧再建 Surface，给旧的解码器留出解绑时间
+        wallpaperVideo.removeCallbacks(pendingVideoStart)
+        wallpaperVideo.postDelayed(pendingVideoStart, 180L)
+        return true
+    }
+
+    private val pendingVideoStart = Runnable {
+        val path = wallpaperVideoPath
+        if (path.isBlank()) return@Runnable
+        if (settings.wallpaperType != "video" || settings.wallpaperPath != path) return@Runnable
+        setupWallpaperVideo(path)
+    }
+
+    private fun setupWallpaperVideo(path: String) {
+        val texture = wallpaperVideo.surfaceTexture ?: return // 等 onSurfaceTextureAvailable 回调
+
+        val surface = Surface(texture)
+        wallpaperSurface = surface
+        wallpaperSurfaceTexture = texture
+
+        videoAspectWidth = 0
+        videoAspectHeight = 0
+        readVideoSize(path)?.let { (width, height) ->
+            videoAspectWidth = width
+            videoAspectHeight = height
         }
 
         val player = MediaPlayer()
+        wallpaperPlayer = player
+
         val setup = runCatching {
-            player.setSurface(Surface(texture))
+            player.setSurface(surface)
             player.setDataSource(path)
             player.isLooping = true
             player.setVolume(0f, 0f)
             player.setOnPreparedListener { mp ->
                 wallpaperVideoPending = false
+                wallpaperVideoRetried = false
+                if (videoAspectWidth == 0 || videoAspectHeight == 0) {
+                    videoAspectWidth = mp.videoWidth
+                    videoAspectHeight = mp.videoHeight
+                }
                 runCatching {
-                    applyVideoTransform(mp.videoWidth, mp.videoHeight)
+                    applyVideoTransform()
                     mp.start()
                 }
             }
-            player.setOnVideoSizeChangedListener { _, width, height ->
-                runCatching { applyVideoTransform(width, height) }
-            }
             player.setOnErrorListener { _, what, extra ->
-                Log.w("WallpaperVideo", "MediaPlayer error what=$what extra=$extra")
-                // 解码失败时退回默认背景，别留一块黑屏
+                Log.w(TAG, "MediaPlayer error what=$what extra=$extra retried=$wallpaperVideoRetried")
                 wallpaperVideoPending = false
                 runCatching { releaseWallpaperVideo() }
-                wallpaperVideo.visibility = View.GONE
-                wallpaperLayer.visibility = View.GONE
-                expandedScrim.setBackgroundResource(R.drawable.bg_screen)
-                expandedSheet.setBackgroundResource(R.drawable.bg_card)
+                runCatching { releaseWallpaperSurface() }
+                val canRetry = !wallpaperVideoRetried &&
+                    settings.wallpaperType == "video" &&
+                    settings.wallpaperPath == path
+                if (canRetry) {
+                    // 偶尔第一次 attach 会失败，隔久一点整条链路重建一次
+                    wallpaperVideoRetried = true
+                    wallpaperVideoPath = path
+                    wallpaperVideoPending = true
+                    wallpaperVideo.postDelayed(pendingVideoStart, 350L)
+                } else {
+                    hideWallpaperToDefault()
+                }
                 true
             }
             // prepareAsync：大视频同步 prepare 会卡住主线程
@@ -671,15 +722,46 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (setup.isFailure) {
-            runCatching { player.release() }
-            Log.w("WallpaperVideo", "setup failed for $path", setup.exceptionOrNull())
-            return false
+            Log.w(TAG, "setup failed for $path", setup.exceptionOrNull())
+            runCatching { releaseWallpaperVideo() }
+            runCatching { releaseWallpaperSurface() }
+            hideWallpaperToDefault()
+            return
         }
-        wallpaperPlayer = player
+
         wallpaperVideoPath = path
         wallpaperVideoPending = true
+        wallpaperVideo.removeOnLayoutChangeListener(videoLayoutListener)
         wallpaperVideo.addOnLayoutChangeListener(videoLayoutListener)
-        return true
+    }
+
+    /** 读取视频宽高并换算旋转，避免竖拍视频被当成横屏拉伸 */
+    private fun readVideoSize(path: String): Pair<Int, Int>? = runCatching {
+        val retriever = MediaMetadataRetriever()
+        try {
+            retriever.setDataSource(path)
+            val width = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_WIDTH)
+                ?.toIntOrNull() ?: 0
+            val height = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_HEIGHT)
+                ?.toIntOrNull() ?: 0
+            val rotation = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_VIDEO_ROTATION)
+                ?.toIntOrNull() ?: 0
+            if (width > 0 && height > 0) {
+                if (rotation % 180 == 90) height to width else width to height
+            } else {
+                null
+            }
+        } finally {
+            runCatching { retriever.release() }
+        }
+    }.getOrNull()
+
+    /** 视频不可用时退回默认纯色背景 */
+    private fun hideWallpaperToDefault() {
+        wallpaperVideo.visibility = View.GONE
+        wallpaperLayer.visibility = View.GONE
+        expandedScrim.setBackgroundResource(R.drawable.bg_screen)
+        expandedSheet.setBackgroundResource(R.drawable.bg_card)
     }
 
     /** 按取景框裁出实际要显示的区域 */
@@ -694,8 +776,10 @@ class MainActivity : AppCompatActivity() {
         }.getOrDefault(source)
     }
 
-    /** 视频按取景框裁剪：把归一化矩形映射成缩放+位移矩阵 */
-    private fun applyVideoTransform(videoWidth: Int, videoHeight: Int) {
+    /** 视频按取景框裁剪：把归一化矩形映射成缩放+位移矩阵（等比 cover，绝不拉伸） */
+    private fun applyVideoTransform() {
+        val videoWidth = videoAspectWidth
+        val videoHeight = videoAspectHeight
         val viewWidth = wallpaperVideo.width.toFloat()
         val viewHeight = wallpaperVideo.height.toFloat()
         if (videoWidth <= 0 || videoHeight <= 0 || viewWidth <= 0f || viewHeight <= 0f) return
@@ -713,8 +797,13 @@ class MainActivity : AppCompatActivity() {
         val centerX = videoWidth * (cropLeft + cropRight) / 2f
         val centerY = videoHeight * (cropTop + cropBottom) / 2f
 
+        // TextureView 会先把 SurfaceTexture 非等比铺满整个 View（W/vw、H/vh），
+        // 这里要把它抵消掉，才能得到真正的等比「铺满裁切」
+        val scaleX = scale * videoWidth / viewWidth
+        val scaleY = scale * videoHeight / viewHeight
+
         val matrix = Matrix()
-        matrix.setScale(scale, scale)
+        matrix.setScale(scaleX, scaleY)
         matrix.postTranslate(viewWidth / 2f - centerX * scale, viewHeight / 2f - centerY * scale)
         wallpaperVideo.setTransform(matrix)
     }
@@ -738,11 +827,20 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun releaseWallpaperVideo() {
+        wallpaperVideo.removeCallbacks(pendingVideoStart)
         runCatching { wallpaperVideo.removeOnLayoutChangeListener(videoLayoutListener) }
         runCatching { wallpaperPlayer?.release() }
         wallpaperPlayer = null
         wallpaperVideoPath = ""
         wallpaperVideoPending = false
+        videoAspectWidth = 0
+        videoAspectHeight = 0
+    }
+
+    private fun releaseWallpaperSurface() {
+        runCatching { wallpaperSurface?.release() }
+        wallpaperSurface = null
+        wallpaperSurfaceTexture = null
     }
 
     private fun applyCardBackground(view: View) {
@@ -1405,6 +1503,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private companion object {
+        const val TAG = "WallpaperVideo"
         /** 虚化程度 100 时对应的最大模糊半径（dp） */
         const val MAX_BLUR_DP = 8f
 
