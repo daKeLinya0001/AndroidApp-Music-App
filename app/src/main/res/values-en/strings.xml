@@ -1,0 +1,181 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Endless Music</string>
+    <string name="launch_text">Endless Music</string>
+    <string name="welcome_title">Welcome to Endless Music\nSupreme user!</string>
+    <string name="welcome_hint">Enter your username</string>
+    <string name="welcome_error_empty">Username can\'t be empty</string>
+    <string name="welcome_error_space">Username can\'t contain spaces</string>
+    <string name="welcome_confirm">Confirm</string>
+
+    <!-- Header -->
+    <string name="eyebrow">Local music</string>
+    <string name="title">Music</string>
+    <string name="subtitle_default">Import local audio and play it right here.</string>
+    <string name="tracks_unit">songs</string>
+    <string name="import_music">Import music</string>
+    <string name="importing">Importing…</string>
+
+    <!-- Library -->
+    <string name="playlist">Library</string>
+    <string name="search_hint">Search tracks</string>
+    <string name="empty_title">No music yet</string>
+    <string name="empty_body">Pick audio files from your device; they will show up in the library.</string>
+    <string name="choose_files">Choose audio files</string>
+    <string name="search_no_results">No matching tracks.</string>
+    <string name="loading">Loading library…</string>
+    <string name="unknown_duration">Unknown duration</string>
+    <string name="remove">Remove</string>
+
+    <!-- Now playing -->
+    <string name="now_playing">Now playing</string>
+    <string name="no_track">No track selected</string>
+    <string name="no_track_body">Pick a song from your library to start.</string>
+    <string name="local_audio">Local audio</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="previous">Previous</string>
+    <string name="next">Next</string>
+    <string name="notification_channel">Playback controls</string>
+    <string name="notification_channel_desc">Shows the current track and playback controls.</string>
+    <string name="notification_playing">Playing</string>
+    <string name="notification_paused">Paused</string>
+    <string name="repeat">Repeat mode</string>
+    <string name="repeat_off">Repeat off</string>
+    <string name="repeat_all">Repeat all</string>
+    <string name="repeat_one">Repeat one</string>
+    <string name="mode_repeat_all">Repeat all</string>
+    <string name="mode_shuffle">Shuffle</string>
+    <string name="mode_repeat_one">Repeat one</string>
+    <string name="volume">Volume</string>
+    <string name="mute">Mute</string>
+    <string name="unmute">Unmute</string>
+
+    <!-- Errors -->
+    <string name="error_unsupported">No playable audio files were found.</string>
+    <string name="error_import">Import failed, please try again.</string>
+    <string name="error_playback">Can\'t play this file; the format may be unsupported.</string>
+
+    <!-- Theme -->
+    <string name="theme_section">Theme</string>
+    <string name="background_label">Background</string>
+    <string name="background_light">Light</string>
+    <string name="background_dark">Dark</string>
+    <string name="background_system">System</string>
+    <string name="disc_label">Record color</string>
+    <string name="disc_black">Black</string>
+    <string name="disc_color">Color</string>
+    <string name="hide_disc">Hide vinyl record</string>
+    <string name="lyrics_loading">Matching lyrics…</string>
+    <string name="lyrics_none">No lyrics</string>
+    <string name="lyric_offset">Lyric offset</string>
+    <string name="lyric_offset_hint">If lyrics lag behind the vocals, move left; if they run ahead, move right. Different masters use different timelines.</string>
+    <string name="lyrics_enabled">Show lyrics</string>
+    <string name="lyrics_enabled_hint">Show synced lyrics above the progress bar in fullscreen.</string>
+    <string name="lyrics_enabled_warning">This may mis-match DJ mixes and niche tracks; use with care.</string>
+    <string name="lyrics_privacy_note">Title and IP are sent to NetEase / QQ Music / Kugou to match lyrics; audio is never uploaded and lyrics are cached locally.</string>
+    <string name="hide_disc_hint">Hide the record in both main and fullscreen views; text, progress and spectrum stay.</string>
+    <string name="disc_center">Record label</string>
+    <string name="disc_center_hint">White label by default; pick an image to replace it (center-cropped).</string>
+    <string name="disc_center_pick">Choose image</string>
+    <string name="theme_hint">Light is the default; Dark suits night use.</string>
+    <string name="color_section">Colors</string>
+    <string name="accent_color">Accent color</string>
+    <string name="text_color">Text color</string>
+    <string name="color_default">Default</string>
+    <string name="color_hint">Accent applies to buttons, progress and switches; text color applies to titles and body.</string>
+    <string name="wallpaper">Wallpaper</string>
+    <string name="wallpaper_hint">Use an image or video as the background of the main screen and fullscreen player; the default is a solid color.</string>
+    <string name="wallpaper_default">Current: solid color</string>
+    <string name="wallpaper_image_status">Current: image wallpaper</string>
+    <string name="wallpaper_video_status">Current: video wallpaper</string>
+    <string name="pick_image">Choose image</string>
+    <string name="pick_video">Choose video</string>
+    <string name="restore_default">Restore default</string>
+    <string name="wallpaper_failed">Failed to set the wallpaper, please try again</string>
+    <string name="crop_hint">Drag or pinch to choose the area to show</string>
+    <string name="crop_done">Done</string>
+
+    <!-- Effects -->
+    <string name="particles_section">Effects</string>
+    <string name="particles_enabled">Particles</string>
+    <string name="particles_enabled_hint">Glowing dots behind the player card and a glow at the bottom, pulsing with bass.</string>
+    <string name="particle_fullscreen">Fullscreen particles</string>
+    <string name="particle_fullscreen_hint">Spread main-screen particles across the whole screen, matching fullscreen.</string>
+    <string name="particle_count">Particle count</string>
+    <string name="particle_count_warning">⚠ Higher counts use more battery and heat; at 100 the visuals win over performance.</string>
+    <string name="particle_size">Particle size</string>
+    <string name="glow_size">Glow size</string>
+    <string name="arc_amplitude">Arc amplitude</string>
+    <string name="arc_amplitude_hint">0 is a smooth ring, 100 is the maximum wave</string>
+    <string name="arc_blur">Arc blur</string>
+    <string name="arc_blur_hint">0 sharp, 100 blurriest; applies to fullscreen particles and glow (Android 12+)</string>
+    <string name="particle_color">Particle color</string>
+    <string name="particle_follow_bar">Follow spectrum</string>
+    <string name="particle_custom">Custom</string>
+
+    <string name="back">Back</string>
+    <string name="expand_player">Expand player</string>
+    <!-- Settings -->
+    <string name="settings">Settings</string>
+    <string name="reset_settings">Reset all settings</string>
+    <string name="reset_settings_hint">Restore all appearance and effect defaults; imported music is kept—only uninstalling clears everything.</string>
+    <string name="reset_dialog_title">Confirm reset</string>
+    <string name="reset_dialog_message">All settings will be reset to defaults. Imported music is not affected. This can\'t be undone.</string>
+    <string name="reset">Reset</string>
+    <string name="cancel">Cancel</string>
+    <string name="settings_title">Player settings</string>
+    <string name="settings_hint">Changes are saved automatically.</string>
+    <string name="spectrum_enabled">Spectrum bars</string>
+    <string name="spectrum_enabled_hint">Show bars under the player text that react to the audio.</string>
+    <string name="library_spectrum_enabled">Spectrum in library</string>
+    <string name="library_spectrum_enabled_hint">Show bars inside the library card without affecting list interaction.</string>
+    <string name="library_bars_placement">Library bar placement</string>
+    <string name="library_bars_placement_hint">Place the bars above the list or flush with the card bottom.</string>
+    <string name="placement_top">Above list</string>
+    <string name="placement_bottom">Flush bottom</string>
+    <string name="max_bar_height">Max bar height</string>
+    <string name="bar_color">Bar color</string>
+    <string name="bar_speed">Bar speed</string>
+    <string name="bar_speed_hint">10 slowest, 100 fastest</string>
+    <string name="bar_opacity">Bar opacity</string>
+    <string name="bar_opacity_hint">0 transparent, 100 opaque</string>
+    <string name="card_opacity">Card opacity</string>
+    <string name="card_opacity_hint">0 transparent, 100 opaque</string>
+    <string name="blur_strength">Blur</string>
+    <string name="blur_strength_hint">0 off, 100 strongest; Android 12 and above</string>
+    <string name="presets">Preset colors</string>
+    <string name="custom_color">Custom color (#RRGGBB)</string>
+    <string name="close">Close</string>
+    <string name="auto_saved">Saved automatically</string>
+    <string name="copyright">Endless Music · © @daKeLinya0001</string>
+    <string name="shortcuts_section">Keyboard shortcuts</string>
+    <string name="shortcuts_hint">Available with a physical keyboard (not needed on touch).</string>
+    <string name="shortcut_play_pause">Play / Pause</string>
+    <string name="shortcut_previous">Previous</string>
+    <string name="shortcut_next">Next</string>
+
+    <!-- Permissions -->
+    <string name="permission_audio_title">Microphone permission is needed for the live spectrum</string>
+    <string name="permission_audio_body">Android\'s audio visualizer API needs microphone permission. If denied, the bars fall back to simulated motion.</string>
+
+    <!-- User -->
+    <string name="user_settings">User settings</string>
+    <string name="user_title">User</string>
+    <string name="user_name_label">Username</string>
+    <string name="user_name_unset">Not set</string>
+    <string name="user_change_name">Change</string>
+    <string name="user_change_title">Change username</string>
+    <string name="user_change_hint">Enter a new username</string>
+    <string name="user_change_saved">Username updated</string>
+    <string name="user_language">Language</string>
+    <string name="user_language_hint">Applies immediately to every screen.</string>
+    <string name="language_chinese">中文</string>
+    <string name="language_english">English</string>
+    <string name="confirm">OK</string>
+
+    <string name="section_display">Display</string>
+    <string name="section_spectrum">Spectrum</string>
+    <string name="section_appearance">Appearance</string>
+    <string name="tracks_zero">0 songs</string>
+</resources>

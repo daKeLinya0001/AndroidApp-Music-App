@@ -112,6 +112,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var etSearch: EditText
     private lateinit var tvNoResults: TextView
     private lateinit var btnImport: ImageButton
+    private lateinit var btnUser: ImageButton
+    private lateinit var tvHeaderUsername: TextView
     private lateinit var btnEmptyImport: MaterialButton
 
     // 全屏展开的播放器
@@ -257,6 +259,14 @@ class MainActivity : AppCompatActivity() {
             refreshLibrary()
         }
         wallpaperPlayer?.let { runCatching { it.start() } }
+        refreshHeaderUser()
+    }
+
+    /** 顶栏用户名：改了用户名从用户页返回后立即同步 */
+    private fun refreshHeaderUser() {
+        val name = WelcomePrefs.username(this)
+        tvHeaderUsername.text = name
+        tvHeaderUsername.visibility = if (name.isBlank()) View.GONE else View.VISIBLE
     }
 
     override fun onPause() {
@@ -306,6 +316,8 @@ class MainActivity : AppCompatActivity() {
         etSearch = findViewById(R.id.et_search)
         tvNoResults = findViewById(R.id.tv_no_results)
         btnImport = findViewById(R.id.btn_import)
+        btnUser = findViewById(R.id.btn_user)
+        tvHeaderUsername = findViewById(R.id.tv_header_username)
         btnEmptyImport = findViewById(R.id.btn_empty_import)
 
         expandedOverlay = findViewById(R.id.expanded_overlay)
@@ -408,6 +420,9 @@ class MainActivity : AppCompatActivity() {
         findViewById<ImageButton>(R.id.btn_settings).setOnClickListener {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+        btnUser.setOnClickListener {
+            startActivity(Intent(this, UserActivity::class.java))
+        }
 
         btnPlay.setOnClickListener {
             maybeRequestAudioPermission()
@@ -494,8 +509,7 @@ class MainActivity : AppCompatActivity() {
     /** 首次安装（或卸载重装）后展示一次：必须填写用户名才能进入主界面 */
     private fun maybeShowWelcome() {
         if (welcomeOverlay != null || isFinishing) return
-        val prefs = getSharedPreferences(WELCOME_PREFS, MODE_PRIVATE)
-        if (prefs.getBoolean(KEY_WELCOME_DONE, false)) return
+        if (WelcomePrefs.isDone(this)) return
 
         val container = findViewById<ViewGroup>(android.R.id.content) ?: return
         val overlay = layoutInflater.inflate(R.layout.view_welcome, container, false)
@@ -503,10 +517,10 @@ class MainActivity : AppCompatActivity() {
         val error = overlay.findViewById<TextView>(R.id.welcome_error)
         val confirm = overlay.findViewById<View>(R.id.welcome_confirm)
 
-        confirm.setOnClickListener { submitWelcome(input, error, prefs) }
+        confirm.setOnClickListener { submitWelcome(input, error) }
         input.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
-                submitWelcome(input, error, prefs)
+                submitWelcome(input, error)
                 true
             } else {
                 false
@@ -523,7 +537,7 @@ class MainActivity : AppCompatActivity() {
         overlay.animate().alpha(1f).setDuration(220L).start()
     }
 
-    private fun submitWelcome(input: EditText, error: TextView, prefs: SharedPreferences) {
+    private fun submitWelcome(input: EditText, error: TextView) {
         val name = input.text.toString()
         when {
             name.isEmpty() -> {
@@ -536,10 +550,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        prefs.edit()
-            .putString(KEY_USERNAME, name)
-            .putBoolean(KEY_WELCOME_DONE, true)
-            .apply()
+        WelcomePrefs.complete(this, name)
 
         hideKeyboard()
         val overlay = welcomeOverlay ?: return

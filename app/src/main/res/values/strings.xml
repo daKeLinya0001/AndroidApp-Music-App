@@ -157,4 +157,22 @@
     <!-- 权限 -->
     <string name="permission_audio_title">需要录音权限才能显示实时频谱</string>
     <string name="permission_audio_body">Android 的音频可视化接口需要录音权限。拒绝后频谱柱将以模拟律动显示。</string>
+    <!-- 用户设置 -->
+    <string name="user_settings">用户设置</string>
+    <string name="user_title">用户</string>
+    <string name="user_name_label">用户名</string>
+    <string name="user_name_unset">未设置</string>
+    <string name="user_change_name">更改</string>
+    <string name="user_change_title">修改用户名</string>
+    <string name="user_change_hint">输入新的用户名</string>
+    <string name="user_change_saved">用户名已更新</string>
+    <string name="user_language">语言</string>
+    <string name="user_language_hint">切换后立即生效，所有界面都会使用所选语言。</string>
+    <string name="language_chinese">中文</string>
+    <string name="language_english">English</string>
+    <string name="confirm">确定</string>
+    <string name="section_display">显示</string>
+    <string name="section_spectrum">频谱</string>
+    <string name="section_appearance">外观</string>
+    <string name="tracks_zero">0 首</string>
 </resources>

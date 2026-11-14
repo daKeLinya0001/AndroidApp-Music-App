@@ -509,7 +509,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:letterSpacing="0.16"
-                    android:text="显示"
+                    android:text="@string/section_display"
                     android:textAllCaps="true"
                     android:textColor="@color/text_tertiary"
                     android:textSize="10sp" />
@@ -659,7 +659,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:letterSpacing="0.16"
-                    android:text="频谱"
+                    android:text="@string/section_spectrum"
                     android:textAllCaps="true"
                     android:textColor="@color/text_tertiary"
                     android:textSize="10sp" />
@@ -874,7 +874,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:letterSpacing="0.16"
-                    android:text="外观"
+                    android:text="@string/section_appearance"
                     android:textAllCaps="true"
                     android:textColor="@color/text_tertiary"
                     android:textSize="10sp" />

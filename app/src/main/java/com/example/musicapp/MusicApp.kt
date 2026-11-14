@@ -12,6 +12,8 @@ class MusicApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // 先恢复语言，再应用夜间模式，避免重建两次
+        AppLanguage.applyStored(this)
         applyNightMode(PlayerSettings.load(this))
     }
 

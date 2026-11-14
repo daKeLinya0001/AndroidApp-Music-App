@@ -58,11 +58,11 @@
             android:paddingEnd="18dp"
             android:paddingBottom="28dp">
 
-            <!-- ================= 顶栏：音符 + 设置 ================= -->
+            <!-- ================= 顶栏：音符（左） + 用户名 + 用户设置 + 设置 ================= -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:gravity="center_vertical|end"
+                android:gravity="center_vertical"
                 android:orientation="horizontal">
 
                 <ImageView
@@ -72,6 +72,32 @@
                     android:contentDescription="@null"
                     android:src="@drawable/ic_music"
                     app:tint="@color/primary_light" />
+
+                <Space
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1" />
+
+                <TextView
+                    android:id="@+id/tv_header_username"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="6dp"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="13sp"
+                    android:visibility="gone" />
+
+                <ImageButton
+                    android:id="@+id/btn_user"
+                    android:layout_width="44dp"
+                    android:layout_height="44dp"
+                    android:background="@drawable/bg_icon_button"
+                    android:contentDescription="@string/user_settings"
+                    android:padding="11dp"
+                    android:src="@drawable/ic_user"
+                    app:tint="@color/text_secondary" />
 
                 <ImageButton
                     android:id="@+id/btn_settings"
@@ -334,7 +360,7 @@
                             android:paddingTop="2dp"
                             android:paddingEnd="8dp"
                             android:paddingBottom="2dp"
-                            android:text="0 首"
+                            android:text="@string/tracks_zero"
                             android:textColor="@color/primary_light"
                             android:textSize="10sp" />
 
