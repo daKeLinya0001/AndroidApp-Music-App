@@ -1,4 +1,4 @@
-package com.example.musicapp
+package app.endlessmusic.player
 
 import android.app.Activity
 import android.graphics.Bitmap
@@ -30,8 +30,8 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
 import androidx.core.widget.NestedScrollView
-import com.example.musicapp.play.PlayerSettings
-import com.example.musicapp.ui.ThemeColors
+import app.endlessmusic.player.play.PlayerSettings
+import app.endlessmusic.player.ui.ThemeColors
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.materialswitch.MaterialSwitch

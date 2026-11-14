@@ -1,4 +1,4 @@
-package com.example.musicapp.ui
+package app.endlessmusic.player.ui
 
 import android.content.Context
 import android.graphics.Bitmap

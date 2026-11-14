@@ -13,13 +13,13 @@ val keystoreProperties = Properties().apply {
 }
 
 android {
-    namespace = "com.example.musicapp"
+    namespace = "app.endlessmusic.player"
     compileSdk {
         version = release(37)
     }
 
     defaultConfig {
-        applicationId = "com.example.musicapp"
+        applicationId = "app.endlessmusic.player"
         minSdk = 24
         targetSdk = 37
         versionCode = 24

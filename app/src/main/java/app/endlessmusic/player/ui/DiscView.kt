@@ -1,4 +1,4 @@
-package com.example.musicapp.ui
+package app.endlessmusic.player.ui
 
 import android.animation.ValueAnimator
 import android.content.Context

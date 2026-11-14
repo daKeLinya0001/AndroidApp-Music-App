@@ -26,7 +26,7 @@
         android:background="@drawable/bg_card">
 
         <!-- 粒子与光晕：以唱片为圆心向外散发，位于内容下方，避免光晕把弧线糊掉 -->
-        <com.example.musicapp.ui.ParticleView
+        <app.endlessmusic.player.ui.ParticleView
             android:id="@+id/ex_particle"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
@@ -65,7 +65,7 @@
                 android:layout_gravity="center_horizontal">
 
                 <!-- 径向频谱：32 根柱子环绕唱片向外辐射 -->
-                <com.example.musicapp.ui.SpectrumView
+                <app.endlessmusic.player.ui.SpectrumView
                     android:id="@+id/ex_spectrum"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
@@ -76,7 +76,7 @@
                     android:layout_height="200dp"
                     android:layout_gravity="center">
 
-                    <com.example.musicapp.ui.DiscView
+                    <app.endlessmusic.player.ui.DiscView
                         android:id="@+id/ex_disc_view"
                         android:layout_width="match_parent"
                         android:layout_height="match_parent" />

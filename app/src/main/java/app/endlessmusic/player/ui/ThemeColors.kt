@@ -1,4 +1,4 @@
-package com.example.musicapp.ui
+package app.endlessmusic.player.ui
 
 import android.content.Context
 import android.content.res.ColorStateList
@@ -12,8 +12,8 @@ import android.widget.SeekBar
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import androidx.core.graphics.ColorUtils
-import com.example.musicapp.R
-import com.example.musicapp.play.PlayerSettings
+import app.endlessmusic.player.R
+import app.endlessmusic.player.play.PlayerSettings
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.slider.Slider

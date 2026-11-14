@@ -1,4 +1,4 @@
-package com.example.musicapp
+package app.endlessmusic.player
 
 import android.os.Bundle
 import android.text.InputFilter
@@ -15,8 +15,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.enableEdgeToEdge
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.musicapp.play.PlayerSettings
-import com.example.musicapp.ui.ThemeColors
+import app.endlessmusic.player.play.PlayerSettings
+import app.endlessmusic.player.ui.ThemeColors
 
 /**
  * 用户设置页：显示/修改用户名，切换中英文。

@@ -1,4 +1,4 @@
-package com.example.musicapp
+package app.endlessmusic.player
 
 import android.content.Context
 

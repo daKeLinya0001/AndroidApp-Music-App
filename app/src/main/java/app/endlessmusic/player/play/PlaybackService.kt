@@ -1,4 +1,4 @@
-package com.example.musicapp.play
+package app.endlessmusic.player.play
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -12,8 +12,8 @@ import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
-import com.example.musicapp.MainActivity
-import com.example.musicapp.R
+import app.endlessmusic.player.MainActivity
+import app.endlessmusic.player.R
 
 /**
  * 前台服务：播放时把进程提升为前台，避免退到后台后被系统回收，
@@ -156,10 +156,10 @@ class PlaybackService : Service() {
         private const val CHANNEL_ID = "playback"
         private const val NOTIFICATION_ID = 1001
 
-        private const val ACTION_TOGGLE = "com.example.musicapp.action.TOGGLE"
-        private const val ACTION_NEXT = "com.example.musicapp.action.NEXT"
-        private const val ACTION_PREV = "com.example.musicapp.action.PREV"
-        private const val ACTION_STOP = "com.example.musicapp.action.STOP"
+        private const val ACTION_TOGGLE = "app.endlessmusic.player.action.TOGGLE"
+        private const val ACTION_NEXT = "app.endlessmusic.player.action.NEXT"
+        private const val ACTION_PREV = "app.endlessmusic.player.action.PREV"
+        private const val ACTION_STOP = "app.endlessmusic.player.action.STOP"
 
         private const val REQUEST_OPEN = 10
         private const val REQUEST_TOGGLE = 11

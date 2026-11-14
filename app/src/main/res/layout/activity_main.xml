@@ -35,7 +35,7 @@
     </FrameLayout>
 
     <!-- 全屏粒子层：开启「全屏粒子特效」时替代卡片内的粒子，铺满整个主界面 -->
-    <com.example.musicapp.ui.ParticleView
+    <app.endlessmusic.player.ui.ParticleView
         android:id="@+id/particle_fullscreen"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -120,7 +120,7 @@
                 android:layout_marginTop="10dp">
 
                 <!-- 频谱柱位于卡片后方，从半透明卡片里透出 -->
-                <com.example.musicapp.ui.SpectrumView
+                <app.endlessmusic.player.ui.SpectrumView
                     android:id="@+id/spectrum_player"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -130,7 +130,7 @@
                     android:layout_marginBottom="10dp" />
 
                 <!-- 粒子与光晕：同样位于卡片后方 -->
-                <com.example.musicapp.ui.ParticleView
+                <app.endlessmusic.player.ui.ParticleView
                     android:id="@+id/particle_view"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -150,7 +150,7 @@
                         android:layout_height="200dp"
                         android:layout_gravity="center_horizontal">
 
-                        <com.example.musicapp.ui.DiscView
+                        <app.endlessmusic.player.ui.DiscView
                             android:id="@+id/disc_view"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent" />
@@ -318,7 +318,7 @@
                 android:layout_marginTop="16dp"
                 android:background="@drawable/bg_card">
 
-                <com.example.musicapp.ui.SpectrumView
+                <app.endlessmusic.player.ui.SpectrumView
                     android:id="@+id/spectrum_library"
                     android:layout_width="match_parent"
                     android:layout_height="0dp"

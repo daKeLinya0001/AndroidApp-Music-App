@@ -1,8 +1,8 @@
-package com.example.musicapp
+package app.endlessmusic.player
 
 import android.app.Application
 import androidx.appcompat.app.AppCompatDelegate
-import com.example.musicapp.play.PlayerSettings
+import app.endlessmusic.player.play.PlayerSettings
 
 /**
  * 启动时按设置应用主题（默认白色浅色主题）。

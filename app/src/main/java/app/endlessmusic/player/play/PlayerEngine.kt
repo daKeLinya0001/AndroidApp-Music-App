@@ -1,4 +1,4 @@
-package com.example.musicapp.play
+package app.endlessmusic.player.play
 
 import android.Manifest
 import android.content.Context
@@ -7,8 +7,8 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.audiofx.Visualizer
 import androidx.core.content.ContextCompat
-import com.example.musicapp.data.Track
-import com.example.musicapp.data.TrackStore
+import app.endlessmusic.player.data.Track
+import app.endlessmusic.player.data.TrackStore
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow

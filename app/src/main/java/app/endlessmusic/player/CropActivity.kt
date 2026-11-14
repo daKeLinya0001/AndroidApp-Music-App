@@ -1,4 +1,4 @@
-package com.example.musicapp
+package app.endlessmusic.player
 
 import android.app.Activity
 import android.content.Intent
@@ -11,7 +11,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.example.musicapp.ui.CropView
+import app.endlessmusic.player.ui.CropView
 
 /**
  * 壁纸取景：选好图片/视频后，让用户拖动、缩放决定背景显示哪一块。

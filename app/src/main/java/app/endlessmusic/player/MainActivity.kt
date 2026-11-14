@@ -1,4 +1,4 @@
-package com.example.musicapp
+package app.endlessmusic.player
 
 import android.Manifest
 import android.animation.ValueAnimator
@@ -58,17 +58,17 @@ import androidx.core.graphics.ColorUtils
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.widget.NestedScrollView
-import com.example.musicapp.data.Track
-import com.example.musicapp.data.TrackStore
-import com.example.musicapp.play.LyricLine
-import com.example.musicapp.play.LyricsRepository
-import com.example.musicapp.play.PlaybackService
-import com.example.musicapp.play.PlayerEngine
-import com.example.musicapp.play.PlayerSettings
-import com.example.musicapp.ui.DiscView
-import com.example.musicapp.ui.ParticleView
-import com.example.musicapp.ui.SpectrumView
-import com.example.musicapp.ui.ThemeColors
+import app.endlessmusic.player.data.Track
+import app.endlessmusic.player.data.TrackStore
+import app.endlessmusic.player.play.LyricLine
+import app.endlessmusic.player.play.LyricsRepository
+import app.endlessmusic.player.play.PlaybackService
+import app.endlessmusic.player.play.PlayerEngine
+import app.endlessmusic.player.play.PlayerSettings
+import app.endlessmusic.player.ui.DiscView
+import app.endlessmusic.player.ui.ParticleView
+import app.endlessmusic.player.ui.SpectrumView
+import app.endlessmusic.player.ui.ThemeColors
 import com.google.android.material.button.MaterialButton
 import java.util.Locale
 import kotlin.math.abs

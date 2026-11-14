@@ -1,4 +1,4 @@
-package com.example.musicapp.data
+package app.endlessmusic.player.data
 
 import android.content.Context
 import android.media.MediaMetadataRetriever
