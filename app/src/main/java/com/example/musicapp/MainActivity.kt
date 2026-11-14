@@ -3,6 +3,7 @@ package com.example.musicapp
 import android.Manifest
 import android.animation.ValueAnimator
 import android.content.Intent
+import android.util.Log
 import android.content.res.ColorStateList
 import android.content.res.Configuration
 import android.graphics.Bitmap
@@ -141,6 +142,11 @@ class MainActivity : AppCompatActivity() {
     private lateinit var wallpaperScrim: View
     private var wallpaperPlayer: MediaPlayer? = null
     private var wallpaperVideoPath = ""
+    /** 已设置视频但 TextureView 的 Surface 还没就绪，等 onSurfaceTextureAvailable 再启动 */
+    private var wallpaperVideoPending = false
+    private val videoLayoutListener = View.OnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+        wallpaperPlayer?.let { runCatching { applyVideoTransform(it.videoWidth, it.videoHeight) } }
+    }
 
     private val tickHandler = Handler(Looper.getMainLooper())
     private var rotationAnimator: ValueAnimator? = null
@@ -271,6 +277,8 @@ class MainActivity : AppCompatActivity() {
         wallpaperVideo.surfaceTextureListener = object : TextureView.SurfaceTextureListener {
             override fun onSurfaceTextureAvailable(surface: SurfaceTexture, width: Int, height: Int) {
                 if (settings.wallpaperType == "video" && settings.wallpaperPath.isNotBlank()) {
+                    // 新的 Surface：先清掉旧的挂起状态，再重新创建播放器
+                    releaseWallpaperVideo()
                     startWallpaperVideo(settings.wallpaperPath)
                 }
             }
@@ -620,29 +628,57 @@ class MainActivity : AppCompatActivity() {
 
     private fun startWallpaperVideo(path: String): Boolean {
         if (wallpaperPlayer != null && wallpaperVideoPath == path) return true
+        if (wallpaperVideoPending && wallpaperVideoPath == path) return true
         releaseWallpaperVideo()
-        val texture = wallpaperVideo.surfaceTexture ?: return false
+
+        // TextureView 的 Surface 是异步创建的：还没就绪时先记下来，
+        // 等 onSurfaceTextureAvailable 回调再真正开始播放
+        val texture = wallpaperVideo.surfaceTexture ?: run {
+            wallpaperVideoPath = path
+            wallpaperVideoPending = true
+            return true
+        }
+
         val player = MediaPlayer()
-        val ok = runCatching {
+        val setup = runCatching {
             player.setSurface(Surface(texture))
             player.setDataSource(path)
             player.isLooping = true
             player.setVolume(0f, 0f)
-            player.setOnVideoSizeChangedListener { _, width, height ->
-                applyVideoTransform(width, height)
+            player.setOnPreparedListener { mp ->
+                wallpaperVideoPending = false
+                runCatching {
+                    applyVideoTransform(mp.videoWidth, mp.videoHeight)
+                    mp.start()
+                }
             }
-            player.prepare()
-            player.start()
-        }.isSuccess
-        if (!ok) {
+            player.setOnVideoSizeChangedListener { _, width, height ->
+                runCatching { applyVideoTransform(width, height) }
+            }
+            player.setOnErrorListener { _, what, extra ->
+                Log.w("WallpaperVideo", "MediaPlayer error what=$what extra=$extra")
+                // 解码失败时退回默认背景，别留一块黑屏
+                wallpaperVideoPending = false
+                runCatching { releaseWallpaperVideo() }
+                wallpaperVideo.visibility = View.GONE
+                wallpaperLayer.visibility = View.GONE
+                expandedScrim.setBackgroundResource(R.drawable.bg_screen)
+                expandedSheet.setBackgroundResource(R.drawable.bg_card)
+                true
+            }
+            // prepareAsync：大视频同步 prepare 会卡住主线程
+            player.prepareAsync()
+        }
+
+        if (setup.isFailure) {
             runCatching { player.release() }
+            Log.w("WallpaperVideo", "setup failed for $path", setup.exceptionOrNull())
             return false
         }
         wallpaperPlayer = player
         wallpaperVideoPath = path
-        wallpaperVideo.addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-            runCatching { applyVideoTransform(player.videoWidth, player.videoHeight) }
-        }
+        wallpaperVideoPending = true
+        wallpaperVideo.addOnLayoutChangeListener(videoLayoutListener)
         return true
     }
 
@@ -702,9 +738,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun releaseWallpaperVideo() {
+        runCatching { wallpaperVideo.removeOnLayoutChangeListener(videoLayoutListener) }
         runCatching { wallpaperPlayer?.release() }
         wallpaperPlayer = null
         wallpaperVideoPath = ""
+        wallpaperVideoPending = false
     }
 
     private fun applyCardBackground(view: View) {
