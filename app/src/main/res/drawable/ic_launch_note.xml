@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 启动动画用的实心音符：两条符头 + 符干 + 顶部横梁，与桌面图标一致 -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="100dp"
+    android:height="100dp"
+    android:viewportWidth="100"
+    android:viewportHeight="100">
+    <path
+        android:fillColor="#0E0E12"
+        android:pathData="M22.7,70.5 a10.8,10.8 0 1,0 21.6,0 a10.8,10.8 0 1,0 -21.6,0" />
+    <path
+        android:fillColor="#0E0E12"
+        android:pathData="M55.7,62.5 a10.8,10.8 0 1,0 21.6,0 a10.8,10.8 0 1,0 -21.6,0" />
+    <path
+        android:fillColor="#0E0E12"
+        android:pathData="M39.2,25.5 h4.8 v45 h-4.8 z" />
+    <path
+        android:fillColor="#0E0E12"
+        android:pathData="M72.2,30.0 h4.8 v32.5 h-4.8 z" />
+    <path
+        android:fillColor="#0E0E12"
+        android:pathData="M39.2,25.5 L77.0,30.0 L77.0,38.8 L39.2,34.3 Z" />
+</vector>

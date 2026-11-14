@@ -31,6 +31,8 @@ import android.view.LayoutInflater
 import android.view.Surface
 import android.view.TextureView
 import android.view.View
+import android.view.MotionEvent
+import android.view.ViewGroup
 import android.view.ViewParent
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.LinearInterpolator
@@ -158,6 +160,8 @@ class MainActivity : AppCompatActivity() {
 
     private val tickHandler = Handler(Looper.getMainLooper())
     private var rotationAnimator: ValueAnimator? = null
+    private var launchOverlay: View? = null
+    private var launchAnimator: ValueAnimator? = null
 
     private val lyricsRepository by lazy { LyricsRepository(this) }
     private var lyricTrackId = ""
@@ -206,7 +210,10 @@ class MainActivity : AppCompatActivity() {
 
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
-                if (isExpanded) {
+                if (launchOverlay != null) {
+                    // 启动动画期间按返回键：只跳过动画，不退出应用
+                    finishLaunchAnimation()
+                } else if (isExpanded) {
                     collapsePlayer()
                 } else {
                     isEnabled = false
@@ -214,6 +221,20 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         })
+
+        // 启动动画只在冷启动（进程重建）时播放，转屏/换主题不会重复
+        maybeShowLaunchAnimation(savedInstanceState)
+    }
+
+    /** 启动动画期间由 Activity 统一拦截点击：命中浮层的空白处也一定能跳过 */
+    override fun dispatchTouchEvent(ev: MotionEvent): Boolean {
+        if (launchOverlay != null) {
+            if (ev.actionMasked == MotionEvent.ACTION_DOWN) {
+                finishLaunchAnimation()
+            }
+            return true
+        }
+        return super.dispatchTouchEvent(ev)
     }
 
     override fun onResume() {
@@ -238,6 +259,10 @@ class MainActivity : AppCompatActivity() {
         tickHandler.removeCallbacks(ticker)
         rotationAnimator?.cancel()
         rotationAnimator = null
+        launchAnimator?.cancel()
+        launchAnimator = null
+        launchOverlay?.let { view -> (view.parent as? ViewGroup)?.removeView(view) }
+        launchOverlay = null
         releaseWallpaperVideo()
         engine.removeListener(engineListener)
         super.onDestroy()
@@ -454,6 +479,103 @@ class MainActivity : AppCompatActivity() {
     }
 
     // ------------------------------------------------------------ 设置
+
+    // ------------------------------------------------------------ 启动动画
+
+    /**
+     * 冷启动动画：纯白背景上「Endless Music」虚化淡出，随后黑色音符浮现。
+     *
+     * 只在 savedInstanceState == null（进程重建后的首次创建）时播放；
+     * 转屏、切换主题触发的 recreate() 不会重复。浮层挂在 android.R.id.content 上，
+     * 覆盖状态栏区域；点击任意位置可跳过。动画结束自动移除，不影响主界面。
+     */
+    private fun maybeShowLaunchAnimation(savedState: Bundle?) {
+        if (savedState != null || launchOverlay != null) return
+        val container = findViewById<ViewGroup>(android.R.id.content) ?: return
+        val overlay = layoutInflater.inflate(R.layout.view_launch_animation, container, false)
+        val text = overlay.findViewById<View>(R.id.launch_text)
+        val note = overlay.findViewById<View>(R.id.launch_note)
+        overlay.setOnClickListener { finishLaunchAnimation() }
+        container.addView(overlay)
+        launchOverlay = overlay
+
+        // 预览按 1080px 宽设计，这里按屏宽等比缩放模糊半径，保证各分辨率观感一致
+        val widthScale = resources.displayMetrics.widthPixels / 1080f
+        val textBlur = 46f * widthScale
+        val noteBlur = 16f * widthScale
+
+        fun render(fraction: Float) {
+            val f = fraction.coerceIn(0f, 1f)
+
+            // 文字：0–0.09 淡入，0.18 起虚化淡出，0.51 完全消失
+            val appear = easeOutCubic((f / 0.09f).coerceIn(0f, 1f))
+            val fade = easeInCubic(((f - 0.18f) / 0.33f).coerceIn(0f, 1f))
+            text.alpha = (appear * (1f - fade)).coerceIn(0f, 1f)
+            val textScale = 1f + 0.05f * fade
+            text.scaleX = textScale
+            text.scaleY = textScale
+            applyLaunchBlur(text, textBlur * fade)
+
+            // 音符：0.43–0.80 由虚到实浮现
+            val noteProgress = easeInOutCubic(((f - 0.43f) / 0.37f).coerceIn(0f, 1f))
+            note.alpha = (noteProgress * 1.1f).coerceIn(0f, 1f)
+            val noteScale = 0.94f + 0.06f * noteProgress
+            note.scaleX = noteScale
+            note.scaleY = noteScale
+            applyLaunchBlur(note, noteBlur * (1f - noteProgress))
+
+            // 最后 8% 淡出白层，交还主界面
+            overlay.alpha = 1f - easeInCubic(((f - 0.92f) / 0.08f).coerceIn(0f, 1f))
+
+            if (f >= 1f) removeLaunchAnimation()
+        }
+
+        render(0f)
+        launchAnimator = ValueAnimator.ofFloat(0f, 1f).apply {
+            duration = LAUNCH_ANIMATION_MS
+            interpolator = LinearInterpolator()
+            addUpdateListener { render(it.animatedValue as Float) }
+            start()
+        }
+    }
+
+    /** Android 12+ 用真高斯模糊；更低版本降级为透明度 + 缩放，不做模糊 */
+    private fun applyLaunchBlur(view: View, radiusPx: Float) {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        if (radiusPx <= 0.6f) {
+            view.setRenderEffect(null)
+        } else {
+            view.setRenderEffect(
+                RenderEffect.createBlurEffect(radiusPx, radiusPx, Shader.TileMode.CLAMP)
+            )
+        }
+    }
+
+    private fun finishLaunchAnimation() {
+        val overlay = launchOverlay ?: return
+        launchAnimator?.cancel()
+        launchAnimator = null
+        overlay.animate().alpha(0f).setDuration(160L).withEndAction { removeLaunchAnimation() }.start()
+    }
+
+    private fun removeLaunchAnimation() {
+        launchAnimator?.cancel()
+        launchAnimator = null
+        launchOverlay?.let { view -> (view.parent as? ViewGroup)?.removeView(view) }
+        launchOverlay = null
+    }
+
+    private fun easeOutCubic(x: Float): Float {
+        val v = 1f - x
+        return 1f - v * v * v
+    }
+
+    private fun easeInCubic(x: Float): Float = x * x * x
+
+    private fun easeInOutCubic(x: Float): Float =
+        if (x < 0.5f) 4f * x * x * x else 1f - (-2f * x + 2f).let { it * it * it } / 2f
+
+    // ------------------------------------------------------------ 设置应用
 
     private fun applySettings() {
         // 歌词延迟变化时强制刷新当前行
@@ -1514,5 +1636,8 @@ class MainActivity : AppCompatActivity() {
 
         /** 展开 / 收起动画时长（毫秒） */
         const val TRANSITION_MS = 380
+
+        /** 冷启动动画时长（毫秒） */
+        const val LAUNCH_ANIMATION_MS = 2000L
     }
 }

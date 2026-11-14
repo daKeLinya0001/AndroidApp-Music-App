@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 冷启动动画：纯白背景，文字虚化淡出，黑色音符浮现 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/launch_root"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFFFF"
+    android:clickable="true"
+    android:focusable="true"
+    android:focusableInTouchMode="true">
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/launch_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:includeFontPadding="false"
+        android:letterSpacing="0.01"
+        android:text="@string/launch_text"
+        android:textColor="#0E0E12"
+        android:textSize="46sp"
+        android:textStyle="bold"
+        app:autoSizeMaxTextSize="46sp"
+        app:autoSizeMinTextSize="22sp"
+        app:autoSizeStepGranularity="1sp"
+        app:autoSizeTextType="uniform" />
+
+    <ImageView
+        android:id="@+id/launch_note"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_gravity="center"
+        android:contentDescription="@null"
+        android:src="@drawable/ic_launch_note" />
+</FrameLayout>
