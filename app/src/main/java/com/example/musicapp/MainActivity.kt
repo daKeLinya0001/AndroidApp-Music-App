@@ -488,10 +488,7 @@ class MainActivity : AppCompatActivity() {
 
         // 粒子与光晕：颜色默认跟随频谱柱，也可在设置里自定义；
         // 开启「全屏粒子特效」时用铺满整屏的粒子层替代卡片内的那层
-        val fullScreenParticles = settings.particlesEnabled && settings.particleFullscreen
-        particleView.visibility =
-            if (settings.particlesEnabled && !settings.particleFullscreen) View.VISIBLE else View.GONE
-        particleFullscreen.visibility = if (fullScreenParticles) View.VISIBLE else View.GONE
+        applyParticleLayers()
 
         particleView.particleColor = resolvedParticleColor()
         particleView.particleSize = settings.particleSize
@@ -808,22 +805,26 @@ class MainActivity : AppCompatActivity() {
         wallpaperVideo.setTransform(matrix)
     }
 
-    private fun moveWallpaperForFullscreen(expanded: Boolean) {
-        if (wallpaperLayer.visibility != View.VISIBLE) return
-        val root = findViewById<FrameLayout>(R.id.root)
-        val layerIndex = root.indexOfChild(wallpaperLayer)
-        if (layerIndex == -1) return
-        val overlayIndex = root.indexOfChild(expandedOverlay)
-        if (expanded && overlayIndex == -1) return
+    /**
+     * 全屏与主界面的层级切换。
+     *
+     * 之前是把壁纸层 removeView/addView 挪到全屏面板下面，但 TextureView 一旦被移除，
+     * SurfaceTexture 就会被销毁，视频必然从头开始播，动画过程中还会闪一下。
+     * 现在壁纸层永远留在原位，进入全屏时改为把主界面内容隐藏：
+     * 这样壁纸在透明面板后面自然透出，视频也不会中断。
+     */
+    private fun setMainContentForFullscreen(expanded: Boolean) {
+        scroll.visibility = if (expanded) View.INVISIBLE else View.VISIBLE
+        applyParticleLayers()
+    }
 
-        root.removeView(wallpaperLayer)
-        // removeView 之后索引会前移，放在全屏面板「正下方」需要相应减一
-        val target = if (expanded) {
-            if (layerIndex < overlayIndex) overlayIndex - 1 else overlayIndex
-        } else {
-            0
-        }
-        root.addView(wallpaperLayer, target, wallpaperLayer.layoutParams)
+    /** 主界面粒子层的显隐（全屏时两层都要隐藏，全屏有自己的粒子层） */
+    private fun applyParticleLayers() {
+        val mainVisible = !isExpanded && settings.particlesEnabled
+        particleView.visibility =
+            if (mainVisible && !settings.particleFullscreen) View.VISIBLE else View.GONE
+        particleFullscreen.visibility =
+            if (mainVisible && settings.particleFullscreen) View.VISIBLE else View.GONE
     }
 
     private fun releaseWallpaperVideo() {
@@ -1298,8 +1299,9 @@ class MainActivity : AppCompatActivity() {
         applyPlaybackState()
 
         expandedOverlay.visibility = View.VISIBLE
-        // 全屏面板是半透明的，壁纸需要移到内容之上、面板之下才能透出来
-        moveWallpaperForFullscreen(expanded = true)
+        // 壁纸层始终留在原位（移动 TextureView 会销毁 Surface，视频会从头播且闪一下），
+        // 改成把主界面内容临时隐藏，让全屏面板后面的壁纸透出来
+        setMainContentForFullscreen(expanded = true)
         expandedScrim.alpha = 0f
 
         // 用缩放 + 位移做过渡（GPU 层完成，不触发重新布局），比逐帧改 LayoutParams 顺滑得多
@@ -1333,8 +1335,6 @@ class MainActivity : AppCompatActivity() {
         if (!isExpanded) return
         isExpanded = false
         applyPlaybackState()
-        // 先把壁纸放回内容下方，收起动画过程中就能看到主界面
-        moveWallpaperForFullscreen(expanded = false)
 
         val end = cardRectOnScreen()
         val fullWidth = expandedSheet.width.coerceAtLeast(1).toFloat()
@@ -1350,6 +1350,8 @@ class MainActivity : AppCompatActivity() {
                 expandedOverlay.visibility = View.GONE
                 expandedScrim.alpha = 0f
                 resetSheetTransform()
+                // 动画结束后再把主界面放回来，过程中不会看到卡片突然出现
+                setMainContentForFullscreen(expanded = false)
             }
             .start()
         expandedScrim.animate().alpha(0f).setDuration(TRANSITION_MS.toLong()).start()
