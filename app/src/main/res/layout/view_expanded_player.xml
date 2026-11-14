@@ -5,19 +5,24 @@
     android:id="@+id/expanded_overlay"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:clickable="true"
+    android:focusable="true"
+    android:focusableInTouchMode="true"
     android:visibility="gone">
 
-    <!-- 展开时盖住下层内容的底色 -->
+    <!-- 展开时盖住下层内容的底色；clickable 保证空白处的触摸不会穿透到主界面 -->
     <View
         android:id="@+id/expanded_scrim"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clickable="true"
         android:background="@drawable/bg_screen" />
 
     <FrameLayout
         android:id="@+id/expanded_sheet"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:clickable="true"
         android:background="@drawable/bg_card">
 
         <!-- 粒子与光晕：以唱片为圆心向外散发，位于内容下方，避免光晕把弧线糊掉 -->
