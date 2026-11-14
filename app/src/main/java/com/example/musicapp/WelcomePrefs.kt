@@ -29,4 +29,12 @@ object WelcomePrefs {
             .putBoolean(KEY_DONE, true)
             .apply()
     }
+
+    /** 清理缓存时调用：只重置「已完成」标记，用户名保留，下次启动重新显示欢迎页 */
+    fun resetWelcome(context: Context) {
+        context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_DONE, false)
+            .apply()
+    }
 }

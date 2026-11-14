@@ -178,4 +178,10 @@
     <string name="section_spectrum">Spectrum</string>
     <string name="section_appearance">Appearance</string>
     <string name="tracks_zero">0 songs</string>
+    <string name="user_cache">Clear cache</string>
+    <string name="user_cache_hint">Removes lyric and temporary cache files. The welcome screen will appear again on the next launch; your username, imported music and settings are kept.</string>
+    <string name="user_cache_action">Clear</string>
+    <string name="user_cache_confirm_title">Clear cache?</string>
+    <string name="user_cache_confirm_message">Lyric and temporary cache files will be removed. The welcome screen will appear again on the next launch. Your username, imported music and all settings are kept.</string>
+    <string name="user_cache_done">Cache cleared. The welcome screen will appear on the next launch.</string>
 </resources>

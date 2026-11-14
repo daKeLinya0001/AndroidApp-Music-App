@@ -518,6 +518,11 @@ class MainActivity : AppCompatActivity() {
         val confirm = overlay.findViewById<View>(R.id.welcome_confirm)
 
         confirm.setOnClickListener { submitWelcome(input, error) }
+        // 清理缓存后欢迎页会再次出现，预填已有用户名，避免用户重输
+        WelcomePrefs.username(this).takeIf { it.isNotBlank() }?.let { saved ->
+            input.setText(saved)
+            input.setSelection(saved.length)
+        }
         input.setOnEditorActionListener { _, actionId, _ ->
             if (actionId == EditorInfo.IME_ACTION_DONE) {
                 submitWelcome(input, error)

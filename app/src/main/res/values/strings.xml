@@ -175,4 +175,10 @@
     <string name="section_spectrum">频谱</string>
     <string name="section_appearance">外观</string>
     <string name="tracks_zero">0 首</string>
+    <string name="user_cache">清理缓存</string>
+    <string name="user_cache_hint">清除歌词与临时缓存文件；清除后下次启动会重新显示欢迎页，已设置的用户名与导入的音乐都会保留。</string>
+    <string name="user_cache_action">清理</string>
+    <string name="user_cache_confirm_title">确认清理缓存</string>
+    <string name="user_cache_confirm_message">将清除歌词与临时缓存。下次启动会重新显示欢迎页，用户名、导入的音乐与全部设置都会保留。</string>
+    <string name="user_cache_done">缓存已清理，下次启动会重新显示欢迎页</string>
 </resources>

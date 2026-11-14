@@ -45,6 +45,7 @@ class UserActivity : AppCompatActivity() {
 
         findViewById<ImageButton>(R.id.btn_user_back).setOnClickListener { finish() }
         findViewById<View>(R.id.btn_change_name).setOnClickListener { showChangeNameDialog() }
+        findViewById<View>(R.id.btn_clear_cache).setOnClickListener { showClearCacheDialog() }
 
         // 语言：默认中文，切换后立即生效
         val current = AppLanguage.current(this)
@@ -124,6 +125,20 @@ class UserActivity : AppCompatActivity() {
         // 弹窗里的输入框默认不聚焦，手动聚焦并弹出键盘，否则键盘输入会落到页面上
         input.requestFocus()
         dialog.window?.setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_VISIBLE)
+    }
+
+    private fun showClearCacheDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.user_cache_confirm_title)
+            .setMessage(R.string.user_cache_confirm_message)
+            .setNegativeButton(R.string.cancel, null)
+            .setPositiveButton(R.string.user_cache_action) { _, _ ->
+                AppCache.clear(this)
+                // 只重置欢迎页标记，用户名保持
+                WelcomePrefs.resetWelcome(this)
+                Toast.makeText(this, R.string.user_cache_done, Toast.LENGTH_LONG).show()
+            }
+            .show()
     }
 
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
